@@ -2,7 +2,7 @@ import express from 'express';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
 import { Marpit } from '@marp-team/marpit';
-import marpCli from '@marp-team/marp-cli';
+import { marpCli } from '@marp-team/marp-cli';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -208,18 +208,72 @@ app.post('/api/export', async (req, res) => {
       options.imageScale = 2; // 高解像度出力
     }
 
+    console.log('エクスポート開始:', {
+      format,
+      tmpDir,
+      input: options.input,
+      output: options.output
+    });
+
+    // 一時ファイルの存在確認
+    const inputExists = await fs.access(options.input)
+      .then(() => true)
+      .catch(() => false);
+    
+    if (!inputExists) {
+      throw new Error(`入力ファイルが見つかりません: ${options.input}`);
+    }
+
     // Marp CLIでファイル生成
-    await marpCli([
+    const cliArgs = [
       options.input,
       '-o', options.output,
       '--allow-local-files',
       '--html',
       ...(format === 'pptx' ? ['--pptx'] : []),
       ...(format === 'png' ? ['--image', '--image-scale', '2'] : [])
-    ]);
+    ];
+
+    console.log('Marp CLI実行:', {
+      args: cliArgs,
+      format,
+      tmpDir,
+      input: options.input,
+      output: options.output
+    });
+
+    // CLIコマンド実行
+    try {
+      await marpCli(cliArgs);
+    } catch (error) {
+      console.error('Marp CLI実行エラー:', {
+        error: error.message,
+        stack: error.stack,
+        args: cliArgs,
+        format,
+        tmpDir,
+        input: options.input,
+        output: options.output
+      });
+      throw new Error(`Marpのエクスポート処理に失敗しました: ${error.message}`);
+    }
+
+    // 出力ファイルの存在確認
+    const outputExists = await fs.access(options.output)
+      .then(() => true)
+      .catch(() => false);
+
+    if (!outputExists) {
+      throw new Error(`出力ファイルが生成されませんでした: ${options.output}`);
+    }
 
     // 生成されたファイルを読み込んでレスポンス
     const output = await fs.readFile(options.output);
+    console.log('ファイル生成成功:', {
+      format,
+      size: output.length,
+      outputPath: options.output
+    });
     
     // Content-Typeの設定
     const contentTypes = {
@@ -233,11 +287,39 @@ app.post('/api/export', async (req, res) => {
     res.send(output);
 
   } catch (error) {
-    console.error('エクスポートエラー:', error);
-    res.status(500).json({
-      error: 'エクスポート中にエラーが発生しました',
-      details: error.message
+    // エラー情報の詳細なログ出力
+    console.error('エクスポートエラー:', {
+      error: error.message,
+      stack: error.stack,
+      format,
+      tmpDir: tmpDir || 'Not created',
+      requestBody: {
+        format,
+        markdownLength: markdown?.length || 0
+      }
     });
+
+    // エラーの種類に応じて適切なステータスコードとメッセージを設定
+    let statusCode = 500;
+    let errorResponse = {
+      error: 'エクスポート中にエラーが発生しました',
+      details: error.message,
+      format,
+      timestamp: new Date().toISOString()
+    };
+
+    if (error.message.includes('入力ファイルが見つかりません')) {
+      statusCode = 400;
+      errorResponse.error = '入力ファイルの作成に失敗しました';
+    } else if (error.message.includes('出力ファイルが生成されませんでした')) {
+      statusCode = 500;
+      errorResponse.error = 'ファイルの生成に失敗しました';
+    } else if (error.message.includes('Marpのエクスポート処理に失敗しました')) {
+      errorResponse.error = 'Marpによるファイル変換に失敗しました';
+      errorResponse.details = error.message.replace('Marpのエクスポート処理に失敗しました: ', '');
+    }
+
+    res.status(statusCode).json(errorResponse);
   } finally {
     // 一時ファイルの削除
     if (tmpDir) {
@@ -249,5 +331,28 @@ app.post('/api/export', async (req, res) => {
 // サーバーの起動
 const PORT = 3001;
 httpServer.listen(PORT, () => {
-  console.log(`Marpサーバーが起動しました: http://localhost:${PORT}`);
+  console.log('===================================');
+  console.log('🚀 Marpサーバーが起動しました');
+  console.log('-----------------------------------');
+  console.log(`📡 API エンドポイント: http://localhost:${PORT}`);
+  console.log(`🔌 WebSocket接続: ws://localhost:${PORT}`);
+  console.log(`🛠️  実行環境: ${process.env.NODE_ENV || 'development'}`);
+  console.log('===================================');
+});
+
+// 予期せぬエラーのハンドリング
+process.on('uncaughtException', (error) => {
+  console.error('予期せぬエラーが発生しました:', {
+    error: error.message,
+    stack: error.stack,
+    timestamp: new Date().toISOString()
+  });
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('未処理のPromise拒否が発生しました:', {
+    reason,
+    promise,
+    timestamp: new Date().toISOString()
+  });
 });

@@ -1,0 +1,222 @@
+/*!
+ * Marp / Marpit Dark Red and Teal PowerPoint-style theme.
+ *
+ * @theme dark-red-teal
+ * @author [Your Name]
+ */
+ @import url("https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;500;700&family=Nanum+Gothic+Coding:wght@400;700&display=swap");
+ section {
+   font-family: "Kaisei Decol", serif;
+   font-weight: 400;
+   font-size: 28px;
+   line-height: 1.5;
+   padding: 40px;
+   width: 1280px;
+   height: 720px;
+   background: linear-gradient(135deg, #b8cfd0, rgb(153.313559322, 186.2542372881, 187.686440678));
+   color: #b0213c;
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   overflow: hidden;
+ }
+ section::before {
+   content: "";
+   position: absolute;
+   top: 0;
+   left: 0;
+   right: 0;
+   height: 5px;
+   background: linear-gradient(90deg, #348c91, #9c5f98);
+ }
+ section > * {
+   margin-left: 60px;
+   margin-right: 60px;
+ }
+ section h1, section h2, section h3, section h4, section h5, section h6 {
+   background: linear-gradient(45deg, #b0213c, #348c91);
+   -webkit-background-clip: text;
+   -webkit-text-fill-color: transparent;
+   background-clip: text;
+   text-fill-color: transparent;
+   margin-top: 0.5em;
+   margin-bottom: 0.3em;
+   line-height: 1.2;
+ }
+ section h1 {
+   font-size: 2.5em;
+   box-shadow: 0 4px 6px rgba(176, 33, 60, 0.1);
+ }
+ section h2 {
+   font-size: 2em;
+ }
+ section h3 {
+   font-size: 1.7em;
+ }
+ section h4 {
+   font-size: 1.4em;
+ }
+ section h5 {
+   font-size: 1.2em;
+ }
+ section h6 {
+   font-size: 1em;
+ }
+ section p {
+   margin: 0.5em 0;
+ }
+ section ul, section ol {
+   margin: 0.5em 0;
+   padding-left: 1.5em;
+ }
+ section li {
+   margin: 0.3em 0;
+ }
+ section a {
+   color: #348c91;
+   text-decoration: none;
+   border-bottom: 2px solid #9c5f98;
+   transition: all 0.3s ease;
+ }
+ section a:hover {
+   background-color: rgba(156, 95, 152, 0.2);
+ }
+ section code,
+ section code * {
+   font-family: "Nanum Gothic Coding", monospace;
+   background: rgba(176, 33, 60, 0.1);
+   color: #b0213c;
+   padding: 0.2em 0.4em;
+   border-radius: 4px;
+   font-size: 0.9em;
+ }
+ section pre {
+   background: linear-gradient(45deg, rgb(168.656779661, 196.6271186441, 197.843220339), rgb(137.2335025381, 208.7055837563, 212.7664974619));
+   border-radius: 8px;
+   padding: 1em;
+   box-shadow: 0 4px 6px rgba(176, 33, 60, 0.1);
+ }
+ section pre code,
+ section pre code * {
+   font-family: "Nanum Gothic Coding", monospace;
+   background: none;
+   color: #b0213c;
+   padding: 0;
+ }
+ section blockquote {
+   margin: 1em 0;
+   padding: 0.5em 1em;
+   border-left: 5px solid #348c91;
+   background: linear-gradient(90deg, rgba(52, 140, 145, 0.2), rgba(156, 95, 152, 0.2));
+   font-style: italic;
+   box-shadow: 0 4px 6px rgba(176, 33, 60, 0.1);
+ }
+ section table {
+   width: 100%;
+   border-collapse: separate;
+   border-spacing: 0;
+   margin: 1em 0;
+   box-shadow: 0 4px 6px rgba(176, 33, 60, 0.1);
+ }
+ section table th, section table td {
+   padding: 0.5em 1em;
+   border: 1px solid rgba(176, 33, 60, 0.2);
+ }
+ section table th {
+   background: linear-gradient(45deg, #348c91, #9c5f98);
+   color: #b8cfd0;
+   font-weight: bold;
+ }
+ section table tr:nth-child(even) {
+   background-color: rgba(184, 207, 208, 0.3);
+ }
+ section table tr:hover {
+   background-color: rgba(52, 140, 145, 0.2);
+ }
+ section.lead {
+   text-align: center;
+   justify-content: center;
+   align-items: center;
+ }
+ section.lead h1 {
+   font-size: 3.5em;
+   margin-bottom: 0.5em;
+ }
+ section.lead p {
+   font-size: 1.5em;
+   max-width: 80%;
+   margin: 0.5em auto;
+ }
+ section.invert {
+   background: linear-gradient(135deg, rgb(133.0526315789, 24.9473684211, 45.3588516746), #b0213c);
+   color: #b8cfd0;
+ }
+ section.invert h1, section.invert h2, section.invert h3, section.invert h4, section.invert h5, section.invert h6 {
+   background: linear-gradient(45deg, #b8cfd0, #348c91);
+   -webkit-background-clip: text;
+   -webkit-text-fill-color: transparent;
+   background-clip: text;
+   text-fill-color: transparent;
+ }
+ section.invert a {
+   color: #348c91;
+   border-bottom-color: #9c5f98;
+ }
+ section.invert a:hover {
+   background-color: rgba(156, 95, 152, 0.2);
+ }
+ section.invert code,
+ section.invert code * {
+   background: rgba(184, 207, 208, 0.2);
+   color: #b8cfd0;
+ }
+ section.invert pre {
+   background: linear-gradient(45deg, rgb(215.5263157895, 44.4736842105, 76.7703349282), rgb(219.5526315789, 65.9473684211, 94.9497607656));
+ }
+ section.invert pre code,
+ section.invert pre code * {
+   color: #b8cfd0;
+ }
+ section.invert blockquote {
+   border-left-color: #348c91;
+   background: linear-gradient(90deg, rgba(52, 140, 145, 0.1), rgba(156, 95, 152, 0.1));
+ }
+ section.invert table th {
+   background: linear-gradient(45deg, rgb(25.076142132, 67.5126903553, 69.923857868), rgb(92.6055776892, 56.3944223108, 90.2310756972));
+   color: #b8cfd0;
+ }
+ section.invert table tr:nth-child(even) {
+   background-color: rgba(176, 33, 60, 0.3);
+ }
+ section.invert table tr:hover {
+   background-color: rgba(52, 140, 145, 0.1);
+ }
+ 
+ header,
+ footer {
+   position: absolute;
+   left: 0;
+   right: 0;
+   color: #b0213c;
+   padding: 0 60px;
+   font-size: 0.8em;
+ }
+ 
+ header {
+   top: 0;
+ }
+ 
+ footer {
+   bottom: 0;
+ }
+ 
+ section::after {
+   content: attr(data-marpit-pagination) " / " attr(data-marpit-pagination-total);
+   position: absolute;
+   right: 30px;
+   bottom: 30px;
+   font-size: 0.8em;
+   color: rgba(176, 33, 60, 0.5);
+ }
+ 
+ /*# sourceMappingURL=dark-red-teal.css.map */

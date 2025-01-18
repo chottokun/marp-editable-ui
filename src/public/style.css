@@ -1,0 +1,158 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #1e1e1e;
+    color: #fff;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background-color: #2d2d2d;
+    padding: 10px 20px;
+    border-bottom: 1px solid #404040;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header h1 {
+    font-size: 20px;
+    color: #fff;
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+}
+
+.toolbar button {
+    background-color: #404040;
+    border: none;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.toolbar button:hover {
+    background-color: #505050;
+}
+
+.container {
+    display: flex;
+    flex: 1;
+    height: calc(100vh - 60px);
+}
+
+.editor-container {
+    flex: 1;
+    height: 100%;
+    border-right: 1px solid #404040;
+}
+
+.preview-container {
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
+    background-color: #2d2d2d;
+    padding: 20px;
+}
+
+#editor {
+    width: 100%;
+    height: 100%;
+}
+
+#preview {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Marpitスライドのスタイル */
+#preview section {
+    background-color: white;
+    margin: 20px auto;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    color: #333;
+}
+
+/* プレビューのズーム制御 */
+#preview section {
+    transform-origin: top center;
+    transform: scale(0.7);
+}
+
+/* スクロールバーのカスタマイズ */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .editor-container,
+    .preview-container {
+        flex: none;
+        height: 50%;
+    }
+    
+    .editor-container {
+        border-right: none;
+        border-bottom: 1px solid #404040;
+    }
+}
+
+/* エラーメッセージのスタイル */
+.error-message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #ff4444;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,119 @@
+/* @theme cat-company */
+
+section {
+  width: 1280px;
+  height: 720px;
+  font-family: "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", Meiryo, メイリオ, Osaka, "MS PGothic", arial, helvetica, sans-serif;
+  padding: 40px;
+  background: linear-gradient(135deg, #fff6f6 0%, #fff9f9 100%);
+}
+
+h1 {
+  color: #ff6b6b;
+  font-size: 2.5em;
+  text-align: center;
+  margin-bottom: 1em;
+  position: relative;
+}
+
+h1::after {
+  content: "🐾";
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.5em;
+}
+
+h2 {
+  color: #4a4a4a;
+  border-bottom: 3px solid #ff9999;
+  padding-bottom: 0.3em;
+  margin-bottom: 1em;
+}
+
+ul, ol {
+  margin-left: 1em;
+  color: #555;
+}
+
+li {
+  margin-bottom: 0.5em;
+}
+
+strong {
+  color: #ff6b6b;
+}
+
+blockquote {
+  border-left: 5px solid #ffcece;
+  padding-left: 1em;
+  color: #666;
+  font-style: italic;
+  margin: 1em 0;
+}
+
+section.title {
+  background: linear-gradient(45deg, #ff9999 0%, #ffb3b3 100%);
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+section.title h1 {
+  color: white;
+  font-size: 3.5em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+section.title p {
+  font-size: 1.5em;
+  margin-top: 1em;
+  opacity: 0.9;
+}
+
+section::before {
+  content: "";
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23ffcece" d="M30,50c0,11-9,20-20,20S-10,61-10,50s9-20,20-20S30,39,30,50z M80,50c0,11-9,20-20,20s-20-9-20-20s9-20,20-20S80,39,80,50z M50,90c0,11-9,20-20,20s-20-9-20-20s9-20,20-20S50,79,50,90z"/></svg>');
+  background-size: contain;
+  opacity: 0.5;
+}
+
+img {
+  max-width: 80%;
+  margin: 0 auto;
+  display: block;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+th, td {
+  border: 1px solid #ffcece;
+  padding: 0.5em;
+  text-align: left;
+}
+
+th {
+  background-color: #fff0f0;
+}
+
+code {
+  background-color: #fff0f0;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: 'Courier New', Courier, monospace;
+}

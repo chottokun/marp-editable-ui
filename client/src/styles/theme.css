@@ -1,0 +1,123 @@
+/* 暖色系テーマ */
+.theme-warm {
+  background: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%);
+  color: #fff;
+}
+
+.theme-warm .header {
+  background: rgba(255, 255, 255, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.theme-warm .toolbar button {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.theme-warm .toolbar button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.theme-warm .editor {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.theme-warm .preview {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.theme-warm .error {
+  background: rgba(255, 255, 255, 0.2);
+  color: #d32f2f;
+  border: 1px solid rgba(211, 47, 47, 0.3);
+}
+
+/* エディタカスタマイズ（暖色系） */
+.theme-warm .cm-editor {
+  background: transparent !important;
+  overflow-y: auto !important;
+}
+
+.theme-warm .cm-scroller {
+  overflow-y: auto !important;
+}
+
+.theme-warm .cm-line {
+  color: #2a1f1d !important;
+}
+
+.theme-warm .cm-activeLineGutter,
+.theme-warm .cm-activeLine {
+  background: rgba(255, 153, 102, 0.1) !important;
+}
+
+.theme-warm .cm-gutters {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: #666 !important;
+}
+
+.theme-warm .cm-cursor {
+  border-left-color: #2a1f1d !important;
+}
+
+.theme-warm .cm-selectionBackground {
+  background: rgba(255, 153, 102, 0.2) !important;
+}
+
+.theme-warm .cm-content {
+  color: #2a1f1d !important;
+}
+
+/* シンタックスハイライト（暖色系） */
+.theme-warm .cm-keyword { color: #d73a49 !important; }
+.theme-warm .cm-string { color: #008000 !important; }
+.theme-warm .cm-comment { color: #6a737d !important; }
+.theme-warm .cm-variable { color: #24292e !important; }
+.theme-warm .cm-number { color: #005cc5 !important; }
+
+/* ダークテーマ */
+.theme-dark {
+  background: linear-gradient(135deg, #1a1f25 0%, #2b3240 100%);
+  color: #fff;
+}
+
+.theme-dark .header {
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-dark .toolbar button {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-dark .toolbar button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.theme-dark .editor,
+.theme-dark .preview {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.theme-dark .error {
+  background: rgba(255, 68, 68, 0.1);
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.2);
+}
+
+/* テーマ切り替えアニメーション */
+.app * {
+  transition: background-color 0.3s ease,
+              border-color 0.3s ease,
+              box-shadow 0.3s ease,
+              color 0.3s ease;
+}

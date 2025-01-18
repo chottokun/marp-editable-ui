@@ -13,10 +13,10 @@
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
-  [![GitHub Stars](https://img.shields.io/github/stars/maki/marp-editable-ui.svg?style=social&label=Star)][repo]
-  [![GitHub Forks](https://img.shields.io/github/forks/maki/marp-editable-ui.svg?style=social&label=Fork)][repo]
+  [![GitHub Stars](https://img.shields.io/github/stars/Sunwood-ai-labs/marp-editable-ui.svg?style=social&label=Star)][repo]
+  [![GitHub Forks](https://img.shields.io/github/forks/Sunwood-ai-labs/marp-editable-ui.svg?style=social&label=Fork)][repo]
 
-  [repo]: https://github.com/maki/marp-editable-ui
+  [repo]: https://github.com/Sunwood-ai-labs/marp-editable-ui
 </div>
 
 このプロジェクトは、[Marp](https://marp.app/)で作成したスライドをWeb上で簡単に閲覧・ダウンロードできるプラットフォームです。

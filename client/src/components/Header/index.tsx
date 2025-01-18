@@ -1,26 +1,80 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import './styles.css';
 
 interface HeaderProps {
   theme: 'dark' | 'warm';
+  content: string;
   onNewFile: () => void;
   onSaveFile: () => void;
   onThemeToggle: () => void;
 }
 
+type ExportFormat = 'pptx' | 'html' | 'png';
+
 const Header: FC<HeaderProps> = ({
   theme,
+  content,
   onNewFile,
   onSaveFile,
   onThemeToggle
 }) => {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async (format: ExportFormat) => {
+    try {
+      setIsExporting(true);
+      const response = await fetch('http://localhost:3001/api/export', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ markdown: content, format }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`エクスポートに失敗しました: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `presentation.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('エクスポートエラー:', error);
+      alert('エクスポート中にエラーが発生しました');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <header className="header">
       <h1>✨ Marp Editable Slides Demo</h1>
       <div className="toolbar">
-        <button onClick={onNewFile}>新規</button>
-        <button onClick={onSaveFile}>保存</button>
-        <button className="theme-toggle" onClick={onThemeToggle}>
+        <button onClick={onNewFile} disabled={isExporting}>新規</button>
+        <button onClick={onSaveFile} disabled={isExporting}>保存</button>
+        <div className="dropdown">
+          <button className="dropdown-trigger" disabled={isExporting}>
+            {isExporting ? '⏳' : '📥'} エクスポート
+          </button>
+          <div className="dropdown-content">
+            <button onClick={() => handleExport('pptx')} disabled={isExporting}>
+              PowerPoint (.pptx)
+            </button>
+            <button onClick={() => handleExport('html')} disabled={isExporting}>
+              HTML (.html)
+            </button>
+            <button onClick={() => handleExport('png')} disabled={isExporting}>
+              画像 (.png)
+            </button>
+          </div>
+        </div>
+        <button className="theme-toggle" onClick={onThemeToggle} disabled={isExporting}>
           {theme === 'dark' ? '🌙' : '☀️'} テーマ切替
         </button>
       </div>

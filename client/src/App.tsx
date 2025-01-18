@@ -130,6 +130,7 @@ function App() {
     <div className={`app theme-${theme}`}>
       <Header
         theme={theme}
+        content={content}
         onNewFile={() => setContent(initialContent)}
         onSaveFile={handleSaveFile}
         onThemeToggle={toggleTheme}

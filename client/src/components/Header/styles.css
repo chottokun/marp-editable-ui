@@ -8,6 +8,7 @@
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   animation: slideIn 0.5s ease-out;
+  z-index: 1000;
 }
 
 .header h1 {
@@ -19,6 +20,7 @@
 .toolbar {
   display: flex;
   gap: 0.8rem;
+  align-items: center;
 }
 
 .toolbar button {
@@ -32,20 +34,90 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.toolbar button:hover {
+.toolbar button:not(:disabled):hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-.toolbar button:active {
+.toolbar button:not(:disabled):active {
   transform: translateY(0);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .theme-toggle {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* ドロップダウンメニュー */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 200px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  background: rgba(40, 44, 52, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 8px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.dropdown:hover .dropdown-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dropdown-content button {
+  width: 100%;
+  text-align: left;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: rgba(50, 54, 62, 0.95);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-content button:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(2px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 768px) {
@@ -56,5 +128,10 @@
   .toolbar button {
     padding: 0.4rem 0.8rem;
     font-size: 0.8rem;
+  }
+  
+  .dropdown-content {
+    right: -50%;
+    min-width: 160px;
   }
 }

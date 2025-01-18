@@ -23,6 +23,8 @@
 
 ## 🚀 特徴
 
+https://github.com/user-attachments/assets/d557485a-e20a-4eb4-9c39-f2e4c16d7f82
+
 - 📱 モダンなWEBインターフェース
 - 🔄 スライドのリアルタイムプレビュー
 - 💾 各種形式でのダウンロード対応（PDF, PPTX）

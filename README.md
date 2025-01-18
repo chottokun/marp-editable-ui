@@ -1,8 +1,23 @@
-<p align="center">
-  <img src="assets/header.svg" alt="Marp Editable Slides">
-</p>
+<div align="center">
+  <img src="assets/header.png" alt="Marp Editable Slides">
 
-# 🎯 Marpスライド閲覧・共有プラットフォーム
+  ## Marp Editable UI
+
+  ### 🎯 Marpスライド閲覧・共有プラットフォーム
+
+  [![Node.js Version](https://img.shields.io/badge/Node.js-20.x-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
+  [![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+  [![Express](https://img.shields.io/badge/Express-4.18-000000?logo=express&logoColor=white)](https://expressjs.com/)
+
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
+  [![GitHub Stars](https://img.shields.io/github/stars/maki/marp-editable-ui.svg?style=social&label=Star)][repo]
+  [![GitHub Forks](https://img.shields.io/github/forks/maki/marp-editable-ui.svg?style=social&label=Fork)][repo]
+
+  [repo]: https://github.com/maki/marp-editable-ui
+</div>
 
 このプロジェクトは、[Marp](https://marp.app/)で作成したスライドをWeb上で簡単に閲覧・ダウンロードできるプラットフォームです。
 

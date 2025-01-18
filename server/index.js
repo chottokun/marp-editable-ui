@@ -1,9 +1,16 @@
-const express = require('express');
-const { Server } = require('socket.io');
-const { createServer } = require('http');
-const { Marpit } = require('@marp-team/marpit');
-const cors = require('cors');
-const path = require('path');
+import express from 'express';
+import { Server } from 'socket.io';
+import { createServer } from 'http';
+import { Marpit } from '@marp-team/marpit';
+import marpCli from '@marp-team/marp-cli';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { promises as fs } from 'fs';
+import os from 'os';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
@@ -153,6 +160,90 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('クライアント切断:', socket.id);
   });
+});
+
+// 一時ファイルの作成
+async function createTempFile(content, ext = '.md') {
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'marp-'));
+  const tmpFile = path.join(tmpDir, `slide${ext}`);
+  await fs.writeFile(tmpFile, content);
+  return { tmpDir, tmpFile };
+}
+
+// 一時ファイルの削除
+async function cleanupTempFiles(tmpDir) {
+  try {
+    await fs.rm(tmpDir, { recursive: true });
+  } catch (error) {
+    console.error('一時ファイルの削除に失敗:', error);
+  }
+}
+
+// ダウンロード用エンドポイント
+app.post('/api/export', async (req, res) => {
+  const { markdown, format } = req.body;
+  if (!markdown || !format) {
+    return res.status(400).json({ error: '必要なパラメータが不足しています' });
+  }
+
+  let tmpDir;
+  try {
+    // 一時ファイルの作成
+    const { tmpDir: dir, tmpFile } = await createTempFile(markdown);
+    tmpDir = dir;
+
+    // Marp CLIオプションの設定
+    const options = {
+      input: tmpFile,
+      output: path.join(tmpDir, `output.${format}`),
+      allowLocalFiles: true,
+      html: true
+    };
+
+    // 形式に応じた追加設定
+    if (format === 'pptx') {
+      options.pptx = true;
+    } else if (format === 'png') {
+      options.image = true;
+      options.imageScale = 2; // 高解像度出力
+    }
+
+    // Marp CLIでファイル生成
+    await marpCli([
+      options.input,
+      '-o', options.output,
+      '--allow-local-files',
+      '--html',
+      ...(format === 'pptx' ? ['--pptx'] : []),
+      ...(format === 'png' ? ['--image', '--image-scale', '2'] : [])
+    ]);
+
+    // 生成されたファイルを読み込んでレスポンス
+    const output = await fs.readFile(options.output);
+    
+    // Content-Typeの設定
+    const contentTypes = {
+      'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'html': 'text/html',
+      'png': 'image/png'
+    };
+    
+    res.setHeader('Content-Type', contentTypes[format]);
+    res.setHeader('Content-Disposition', `attachment; filename=presentation.${format}`);
+    res.send(output);
+
+  } catch (error) {
+    console.error('エクスポートエラー:', error);
+    res.status(500).json({
+      error: 'エクスポート中にエラーが発生しました',
+      details: error.message
+    });
+  } finally {
+    // 一時ファイルの削除
+    if (tmpDir) {
+      await cleanupTempFiles(tmpDir);
+    }
+  }
 });
 
 // サーバーの起動

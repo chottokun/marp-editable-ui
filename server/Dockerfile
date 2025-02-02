@@ -16,21 +16,19 @@ RUN apk add --no-cache \
     imagemagick
 
 # 作業ディレクトリを設定
-WORKDIR /app
-
-# サーバーのpackage.jsonをコピー
-COPY server/package.json server/
-COPY server/package-lock.json server/
-
-# serverディレクトリに移動して依存関係をインストール
 WORKDIR /app/server
+
+# package.jsonをコピー
+COPY server/package.json ./
+
+# 依存関係をインストール
 RUN npm install
 
 # nodemonをグローバルにインストール
 RUN npm install -g nodemon
 
 # サーバーのソースコードをコピー
-COPY server/index.js .
+COPY server/index.js ./
 
 # 環境変数を設定
 ENV NODE_ENV=development

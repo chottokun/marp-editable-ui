@@ -124,12 +124,27 @@ jobs:
           echo "IMAGE_NAME=${BASE_NAME,,}" >>${GITHUB_ENV}
           echo "FULL_IMAGE_NAME=ghcr.io/${BASE_NAME,,}-${{ matrix.service }}" >>${GITHUB_ENV}
 
+      # ディレクトリが存在することを確認
+      - name: Create digests directory
+        run: |
+          mkdir -p /tmp/digests
+          cd /tmp/digests
+          pwd
+          ls -la
+
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
           pattern: digests-${{ matrix.service }}-*
           path: /tmp/digests
           merge-multiple: true
+
+      # ダウンロードしたファイルを確認
+      - name: List downloaded files
+        run: |
+          cd /tmp/digests
+          pwd
+          ls -la
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -155,19 +170,29 @@ jobs:
             latest=${{ github.ref == 'refs/heads/main' }}
 
       - name: Create and push manifest list
-        working-directory: /tmp/digests
         run: |
+          cd /tmp/digests
+          # ファイルの存在を確認
+          echo "Current directory contents:"
+          ls -la
+          
           # ダイジェストファイルの一覧を作成
           digests=""
-          for digest in $(ls); do
-            digests="$digests ${{ env.FULL_IMAGE_NAME }}@sha256:$digest"
+          for digest in *; do
+            if [ -f "$digest" ]; then
+              digests="$digests ${{ env.FULL_IMAGE_NAME }}@sha256:$digest"
+            fi
           done
           
           # タグを取得
           tags=$(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON")
           
+          echo "Creating manifest list with tags: $tags"
+          echo "And digests: $digests"
+          
           # マニフェストリストを作成
           docker buildx imagetools create $tags $digests
+        working-directory: /tmp/digests
 
       - name: Inspect image
         if: success()

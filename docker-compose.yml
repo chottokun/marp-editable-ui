@@ -1,0 +1,55 @@
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      target: development
+    container_name: marp-ui-client
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:3001
+      - NODE_ENV=development
+    depends_on:
+      - server
+    networks:
+      - marp-network
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: marp-ui-server
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./server:/app/server
+      - /app/server/node_modules
+      - slide-data:/app/data
+      - temp-data:/tmp/slides
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - SOCKET_PORT=3001
+      - CHROME_PATH=/usr/bin/chromium-browser
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - marp-network
+
+volumes:
+  slide-data:
+    driver: local
+  temp-data:
+    driver: local
+
+networks:
+  marp-network:
+    driver: bridge

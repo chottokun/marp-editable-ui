@@ -1,0 +1,171 @@
+name: Build and Publish Docker Images
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+        service:
+          - client
+          - server
+
+    steps:
+      - name: Set image names
+        run: |
+          BASE_NAME="${{ github.repository }}"
+          echo "IMAGE_NAME=${BASE_NAME,,}" >>${GITHUB_ENV}
+          echo "FULL_IMAGE_NAME=ghcr.io/${BASE_NAME,,}-${{ matrix.service }}" >>${GITHUB_ENV}
+
+      - name: Prepare platform info
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.FULL_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=git-
+          flavor: |
+            latest=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Set build configuration
+        id: build-config
+        run: |
+          if [ "${{ matrix.service }}" = "client" ]; then
+            echo "context=./client" >> $GITHUB_OUTPUT
+            echo "dockerfile=./client/Dockerfile" >> $GITHUB_OUTPUT
+            echo "target=production" >> $GITHUB_OUTPUT
+          else
+            echo "context=." >> $GITHUB_OUTPUT
+            echo "dockerfile=./server/Dockerfile" >> $GITHUB_OUTPUT
+            echo "target=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push by digest
+        uses: docker/build-push-action@v5
+        id: build
+        with:
+          context: ${{ steps.build-config.outputs.context }}
+          file: ${{ steps.build-config.outputs.dockerfile }}
+          target: ${{ steps.build-config.outputs.target }}
+          push: true
+          platforms: ${{ matrix.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,name=${{ env.FULL_IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=registry,ref=${{ env.FULL_IMAGE_NAME }}:buildcache-${{ env.PLATFORM_PAIR }}
+          cache-to: type=registry,ref=${{ env.FULL_IMAGE_NAME }}:buildcache-${{ env.PLATFORM_PAIR }},mode=max
+          build-args: |
+            BUILD_HASH=${{ github.sha }}
+            NODE_ENV=production
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests/${{ matrix.service }}
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${{ matrix.service }}/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.service }}-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/${{ matrix.service }}/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge-images:
+    needs: [build-and-push]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - client
+          - server
+    steps:
+      - name: Set image names
+        run: |
+          BASE_NAME="${{ github.repository }}"
+          echo "IMAGE_NAME=${BASE_NAME,,}" >>${GITHUB_ENV}
+          echo "FULL_IMAGE_NAME=ghcr.io/${BASE_NAME,,}-${{ matrix.service }}" >>${GITHUB_ENV}
+
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-${{ matrix.service }}-*
+          path: /tmp/digests
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.FULL_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=git-
+          flavor: |
+            latest=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Create and push manifest list
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.FULL_IMAGE_NAME }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.FULL_IMAGE_NAME }}:${{ steps.meta.outputs.version }}

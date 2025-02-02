@@ -1,123 +1,194 @@
+# Marp Editable UI
+
 <div align="center">
   <img src="assets/header.png" alt="Marp Editable Slides">
 
-  ## Marp Editable UI
-
-  ### 🎯 Marpスライド閲覧・共有プラットフォーム
+  ## 🎯 Marpスライド編集・プレビュープラットフォーム
 
   [![Node.js Version](https://img.shields.io/badge/Node.js-20.x-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
   [![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
   [![Express](https://img.shields.io/badge/Express-4.18-000000?logo=express&logoColor=white)](https://expressjs.com/)
+  [![Docker](https://img.shields.io/badge/Docker-24.0-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](http://makeapullrequest.com)
-  [![GitHub Stars](https://img.shields.io/github/stars/Sunwood-ai-labs/marp-editable-ui.svg?style=social&label=Star)][repo]
-  [![GitHub Forks](https://img.shields.io/github/forks/Sunwood-ai-labs/marp-editable-ui.svg?style=social&label=Fork)][repo]
-
-  [repo]: https://github.com/Sunwood-ai-labs/marp-editable-ui
 </div>
 
-このプロジェクトは、[Marp](https://marp.app/)で作成したスライドをWeb上で簡単に閲覧・ダウンロードできるプラットフォームです。
+## 🌟 特徴
 
-## 🚀 特徴
-
-https://github.com/user-attachments/assets/d557485a-e20a-4eb4-9c39-f2e4c16d7f82
-
-- 📱 モダンなWEBインターフェース
-- 🔄 スライドのリアルタイムプレビュー
-- 💾 各種形式でのダウンロード対応（PDF, PPTX）
-- 🌐 ブラウザベースで簡単アクセス
-- 🎨 レスポンシブデザイン
+- 📝 リアルタイムマークダウン編集
+- 🔄 インスタントプレビュー
+- 📊 複数形式でのエクスポート（PDF, PPTX, PNG）
+- 🎨 カスタマイズ可能なテーマ
 - 🌙 ダーク/ライトモード対応
+- 📱 レスポンシブデザイン
+- 🔌 WebSocket によるリアルタイム同期
+- 🐳 Docker による簡単デプロイ
 
-## 📁 プロジェクト構成
+## 🛠️ 技術スタック
 
-```plaintext
-marp-editable-ui/
-├─ client/               # フロントエンド（React + TypeScript）
-│  ├─ src/
-│  │  ├─ components/    # UIコンポーネント
-│  │  │  ├─ Editor/     # スライドビューア
-│  │  │  ├─ Header/     # ヘッダーメニュー
-│  │  │  └─ Preview/    # スライドプレビュー
-│  │  └─ styles/        # UIスタイル
-├─ server/               # バックエンド（Node.js + Express）
-│  └─ index.js          # サーバーロジック
-└─ src/                 # 共通リソース
-   └─ public/           # 静的ファイル
-```
+### フロントエンド
+- React 18.3
+- TypeScript 5.6
+- Vite 6.0
+- Mantine UI
+- CodeMirror (コードエディタ)
+- Socket.IO Client (リアルタイム通信)
 
-## 🛠️ 開発環境のセットアップ
+### バックエンド
+- Node.js 20
+- Express 4.18
+- Marp CLI / Marpit (スライド変換)
+- Socket.IO (WebSocket)
+- LibreOffice (PowerPoint変換)
 
-### 依存関係のインストール
+### インフラ
+- Docker
+- Nginx
+- Alpine Linux
+
+## 📦 必要要件
+
+- Node.js 20.x
+- npm または yarn
+- Docker & Docker Compose
+- LibreOffice (PowerPointエクスポート用)
+
+## 🚀 クイックスタート
+
+### Docker を使用する場合
 
 ```bash
-# すべての依存関係をインストール
+# リポジトリのクローン
+git clone https://github.com/your-username/marp-editable-ui.git
+cd marp-editable-ui
+
+# コンテナのビルドと起動
+docker-compose up --build
+```
+
+### ローカル環境での実行
+
+1. 依存関係のインストール:
+```bash
 npm run install-all
 ```
 
-### LibreOfficeのインストール（PowerPoint出力用）
+2. 開発サーバーの起動:
+```bash
+npm run dev
+```
 
-PowerPoint形式（.pptx）でのダウンロードを有効にするには：
+3. ブラウザで以下のURLにアクセス:
+- フロントエンド: http://localhost:5173
+- バックエンドAPI: http://localhost:3001
 
-1. [Vector（窓の杜）からLibreOfficeをダウンロード](https://forest.watch.impress.co.jp/library/software/libreoffice/)
+## 📁 プロジェクト構成
+
+```
+marp-editable-ui/
+├─ client/                 # フロントエンド
+│  ├─ public/             # 静的ファイル
+│  ├─ src/
+│  │  ├─ components/      # Reactコンポーネント
+│  │  │  ├─ Editor/       # マークダウンエディタ
+│  │  │  ├─ Header/       # ヘッダーメニュー
+│  │  │  └─ Preview/      # スライドプレビュー
+│  │  ├─ styles/          # グローバルスタイル
+│  │  └─ App.tsx          # メインアプリケーション
+│  ├─ Dockerfile          # フロントエンドのDocker設定
+│  └─ vite.config.ts      # Vite設定
+├─ server/                 # バックエンド
+│  ├─ index.js            # Express/Socket.IOサーバー
+│  └─ Dockerfile          # バックエンドのDocker設定
+└─ docker-compose.yml      # Docker Compose設定
+```
+
+## 💫 主な機能
+
+### エディタ機能
+- シンタックスハイライト
+- 自動インデント
+- リアルタイムプレビュー
+- 行番号表示
+- コードフォールディング
+
+### プレビュー機能
+- リアルタイム更新
+- スライドのスケーリング
+- エラー表示
+- カスタムテーマ適用
+
+### エクスポート機能
+- PDF出力
+- PowerPoint (PPTX) 出力
+- PNG画像出力
+- HTMLエクスポート
+
+## 🔧 環境設定
+
+### PowerPointエクスポート用のLibreOfficeセットアップ
+
+#### Windows
+1. [Vector（窓の杜）](https://forest.watch.impress.co.jp/library/software/libreoffice/)からLibreOfficeをダウンロード
 2. インストーラーを実行
 3. デフォルト設定でインストール
 
-※ LibreOfficeは.pptx形式の出力にのみ必要です。PDF出力は LibreOffice なしで可能です。
-
-## 💫 使用方法
-
-### アプリケーションの起動
-
+#### macOS
 ```bash
-# 開発サーバーの起動
-npm run dev
-
-# 本番環境用ビルド
-npm run build
+brew install --cask libreoffice
 ```
 
-### スライド閲覧
+#### Linux (Ubuntu/Debian)
+```bash
+sudo apt-get update
+sudo apt-get install libreoffice
+```
 
-1. ブラウザで [http://localhost:5173](http://localhost:5173) にアクセス
-2. アップロードされたスライドを閲覧
-3. 必要に応じて各種形式でダウンロード
+## 🌐 ネットワーク設定
 
-### 機能一覧
+デフォルトポート:
+- フロントエンド: 5173
+- バックエンド: 3001
+- WebSocket: 3001
 
-- **プレビュー**: スライドをブラウザ上でリアルタイムに閲覧
-- **ダウンロード**: PDF・PowerPoint形式でダウンロード可能
-- **テーマ切替**: ダーク/ライトモードの切り替えに対応
-- **レスポンシブ**: モバイルデバイスにも最適化された表示
+環境変数での設定変更が可能です:
+```bash
+# .env
+VITE_API_URL=http://localhost:3001
+PORT=3001
+SOCKET_PORT=3001
+```
 
-## 🔧 技術スタック
+## 🔒 セキュリティ考慮事項
 
-- **フロントエンド**:
-  - React + TypeScript
-  - Vite
-  - Socket.IO Client
-  - Mantine UI
+- CORS設定済み
+- WebSocketセキュリティ対策実装
+- Nginxセキュリティヘッダー設定
+- ファイルアップロード制限
+- サニタイズ処理
 
-- **バックエンド**:
-  - Node.js + Express
-  - Marpit（Markdownレンダリング）
-  - Socket.IO
+## 🤝 コントリビューション
+
+1. このリポジトリをフォーク
+2. 新しいブランチを作成 (`git checkout -b feature/amazing-feature`)
+3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
+4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
+5. プルリクエストを作成
 
 ## 📄 ライセンス
 
-MIT License
+MIT License - 詳細は [LICENSE](LICENSE) ファイルを参照してください。
 
-## 🤝 貢献
+## 🙏 クレジット
 
-1. このリポジトリをフォーク
-2. 機能ブランチを作成
-3. 変更をコミット
-4. ブランチにプッシュ
-5. プルリクエストを作成
+- [Marp](https://marp.app/) - Markdownプレゼンテーションエコシステム
+- [React](https://reactjs.org/) - UIライブラリ
+- [Vite](https://vitejs.dev/) - フロントエンドツール
+- [Express](https://expressjs.com/) - Node.jsウェブアプリケーションフレームワーク
 
-## ⭐ スター付けのお願い
+## 📮 お問い合わせ
 
-このプロジェクトが気に入りましたら、GitHubスターをつけていただけると嬉しいです！
+質問や提案がありましたら、Issueを作成するかプルリクエストを送信してください。

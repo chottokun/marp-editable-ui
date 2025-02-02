@@ -124,6 +124,10 @@ jobs:
           echo "IMAGE_NAME=${BASE_NAME,,}" >>${GITHUB_ENV}
           echo "FULL_IMAGE_NAME=ghcr.io/${BASE_NAME,,}-${{ matrix.service }}" >>${GITHUB_ENV}
 
+      # 一時ディレクトリを作成
+      - name: Create temp directory
+        run: mkdir -p /tmp/digests
+
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
@@ -154,11 +158,19 @@ jobs:
           flavor: |
             latest=${{ github.ref == 'refs/heads/main' }}
 
+      # 作業ディレクトリの準備と確認を追加
+      - name: Prepare working directory
+        run: |
+          ls -la /tmp/digests
+          echo "Current working directory contents:"
+          ls -la
+
       - name: Create and push manifest list
         working-directory: /tmp/digests
+        shell: bash
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.FULL_IMAGE_NAME }}@sha256:%s ' *)
+            $(find . -type f -exec echo "${{ env.FULL_IMAGE_NAME }}@sha256:$(basename {})" \;)
 
       - name: Inspect image
         run: |

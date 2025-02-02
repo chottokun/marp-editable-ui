@@ -23,12 +23,19 @@ jobs:
       packages: write
     strategy:
       matrix:
+        include:
+          - service: client
+            context: ./client
+            dockerfile: Dockerfile
+            target: production
+          - service: server
+            context: .
+            dockerfile: server/Dockerfile
+            target: ""
+
         platform:
           - linux/amd64
           - linux/arm64
-        service:
-          - client
-          - server
 
     steps:
       - name: Set image names
@@ -71,26 +78,13 @@ jobs:
           flavor: |
             latest=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Set build configuration
-        id: build-config
-        run: |
-          if [ "${{ matrix.service }}" = "client" ]; then
-            echo "context=./client" >> $GITHUB_OUTPUT
-            echo "dockerfile=./client/Dockerfile" >> $GITHUB_OUTPUT
-            echo "target=production" >> $GITHUB_OUTPUT
-          else
-            echo "context=." >> $GITHUB_OUTPUT
-            echo "dockerfile=./server/Dockerfile" >> $GITHUB_OUTPUT
-            echo "target=" >> $GITHUB_OUTPUT
-          fi
-
       - name: Build and push by digest
         uses: docker/build-push-action@v5
         id: build
         with:
-          context: ${{ steps.build-config.outputs.context }}
-          file: ${{ steps.build-config.outputs.dockerfile }}
-          target: ${{ steps.build-config.outputs.target }}
+          context: ${{ matrix.context }}
+          file: ${{ matrix.context }}/${{ matrix.dockerfile }}
+          target: ${{ matrix.target }}
           push: true
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}

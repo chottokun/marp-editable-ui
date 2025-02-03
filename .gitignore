@@ -20,3 +20,5 @@ Thumbs.db
 .vscode
 *.swp
 *.swo
+.SourceSageAssets/
+issue_creator.log

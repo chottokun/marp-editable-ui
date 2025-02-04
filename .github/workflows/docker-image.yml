@@ -23,15 +23,6 @@ jobs:
       packages: write
     strategy:
       matrix:
-        include:
-          - service: client
-            context: .           # 変更: ルートディレクトリを指定
-            dockerfile: client/Dockerfile  # 変更: 正しいDockerfileパス
-            target: production
-          - service: server
-            context: .
-            dockerfile: server/Dockerfile
-            target: ""
         platform:
           - linux/amd64
           - linux/arm64
@@ -82,9 +73,7 @@ jobs:
         uses: docker/build-push-action@v5
         id: build
         with:
-          context: ${{ matrix.context }}
-          file: ${{ matrix.dockerfile }}  # 変更: file パスを修正
-          target: ${{ matrix.target }}
+          context: .
           push: true
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -114,16 +103,10 @@ jobs:
     steps:
       - name: Set image name
         run: |
-          BASE_NAME="${{ github.repository }}"
-          echo "IMAGE_NAME=${BASE_NAME,,}" >>${GITHUB_ENV}
-          echo "FULL_IMAGE_NAME=ghcr.io/${BASE_NAME,,}-${{ matrix.service }}" >>${GITHUB_ENV}
-
-      - name: Create digests directory
-        run: |
-          mkdir -p /tmp/digests
-          cd /tmp/digests
-          pwd
-          ls -la
+          echo "IMAGE_NAME=${IMAGE_NAME,,}" >>${GITHUB_ENV}
+          echo "FULL_IMAGE_NAME=ghcr.io/${IMAGE_NAME,,}" >>${GITHUB_ENV}
+        env:
+          IMAGE_NAME: '${{ github.repository }}'
 
       - name: Download digests
         uses: actions/download-artifact@v4
@@ -131,12 +114,6 @@ jobs:
           pattern: digests-*
           path: /tmp/digests
           merge-multiple: true
-
-      - name: List downloaded files
-        run: |
-          cd /tmp/digests
-          pwd
-          ls -la
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -162,29 +139,10 @@ jobs:
             latest=${{ github.ref == 'refs/heads/main' }}
 
       - name: Create and push manifest list
+        working-directory: /tmp/digests
         run: |
-          cd /tmp/digests
-          echo "Current directory contents:"
-          ls -la
-          
-          digests=""
-          for digest in *; do
-            if [ -f "$digest" ]; then
-              digests="${digests} ${{ env.FULL_IMAGE_NAME }}@sha256:${digest}"
-            fi
-          done
-          
-          tags=$(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON")
-          
-          echo "Creating manifest list with tags: $tags"
-          echo "And digests: $digests"
-          
-          if [ -n "$digests" ]; then
-            docker buildx imagetools create ${tags} ${digests}
-          else
-            echo "Error: No digest files found"
-            exit 1
-          fi
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.FULL_IMAGE_NAME }}@sha256:%s ' *)
 
       - name: Inspect image
         run: |

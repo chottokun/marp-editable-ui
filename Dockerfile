@@ -1,45 +1,37 @@
-FROM node:20-alpine
+FROM node:23.7.0-bookworm-slim
 
-# システムの依存関係をインストール（開発環境用の最小セット）
-RUN apk add --no-cache \
-    chromium \
-    chromium-chromedriver \
+# システムパッケージの更新とLibreOfficeおよびChromiumのインストール
+RUN apt-get update && apt-get install -y \
     libreoffice \
-    harfbuzz \
-    nss \
-    freetype \
-    ttf-freefont
+    libreoffice-writer \
+    fonts-dejavu \
+    fonts-liberation \
+    fontconfig \
+    curl \
+    chromium \
+    libgconf-2-4 \
+    libxss1 \
+    libxtst6 \
+    && rm -rf /var/lib/apt/lists/*
 
-# 作業ディレクトリを設定
+# ChromiumをMarp CLIのブラウザとして設定
+ENV CHROME_PATH=/usr/bin/chromium
+ENV CHROME_CANARY_PATH=/usr/bin/chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 WORKDIR /app
 
-# package.jsonファイルをコピー
-COPY package*.json ./
-COPY client/package*.json ./client/
-COPY server/package*.json ./server/
-
-# 依存関係をインストール
-RUN npm install && \
-    cd client && npm install && \
-    cd ../server && npm install && \
-    npm install -g @marp-team/marp-cli
-
-# ソースコードをコピー
+# 全ソースコードをコピー
 COPY . .
 
-# 環境変数を設定
-ENV NODE_ENV=development
-ENV PORT=3001
-ENV SOCKET_PORT=3001
-ENV CHROME_PATH=/usr/bin/chromium-browser
-ENV CHROME_ARGS="--no-sandbox,--disable-dev-shm-usage"
+# 依存関係のインストール
+RUN npm install && \
+    cd client && npm install && \
+    cd ../server && npm install
 
-# データディレクトリを作成
-RUN mkdir -p /app/data /tmp/slides && \
-    chmod -R 777 /app/data /tmp/slides
+# Viteサーバーをホストから接続可能にする
+ENV HOST=0.0.0.0
 
-# ポートを公開（Viteのポートとバックエンドのポート）
-EXPOSE 5173 3001
+EXPOSE 5173
 
-# 開発サーバーを起動
 CMD ["npm", "run", "dev"]

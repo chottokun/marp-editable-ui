@@ -1,10 +1,10 @@
-name: Build and Publish Docker Images
+name: Build and Publish Docker Image
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - master
+      - main
     tags:
       - 'v*'
 
@@ -23,26 +23,17 @@ jobs:
       packages: write
     strategy:
       matrix:
-        include:
-          - service: client
-            context: ./client
-            dockerfile: Dockerfile
-            target: production
-          - service: server
-            context: .
-            dockerfile: server/Dockerfile
-            target: ""
-
         platform:
           - linux/amd64
           - linux/arm64
 
     steps:
-      - name: Set image names
+      - name: Set image name
         run: |
-          BASE_NAME="${{ github.repository }}"
-          echo "IMAGE_NAME=${BASE_NAME,,}" >>${GITHUB_ENV}
-          echo "FULL_IMAGE_NAME=ghcr.io/${BASE_NAME,,}-${{ matrix.service }}" >>${GITHUB_ENV}
+          echo "IMAGE_NAME=${IMAGE_NAME,,}" >>${GITHUB_ENV}
+          echo "FULL_IMAGE_NAME=ghcr.io/${IMAGE_NAME,,}" >>${GITHUB_ENV}
+        env:
+          IMAGE_NAME: '${{ github.repository }}'
 
       - name: Prepare platform info
         run: |
@@ -82,9 +73,7 @@ jobs:
         uses: docker/build-push-action@v5
         id: build
         with:
-          context: ${{ matrix.context }}
-          file: ${{ matrix.context }}/${{ matrix.dockerfile }}
-          target: ${{ matrix.target }}
+          context: .
           push: true
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -93,58 +82,38 @@ jobs:
           cache-to: type=registry,ref=${{ env.FULL_IMAGE_NAME }}:buildcache-${{ env.PLATFORM_PAIR }},mode=max
           build-args: |
             BUILD_HASH=${{ github.sha }}
-            NODE_ENV=production
 
       - name: Export digest
         run: |
-          mkdir -p /tmp/digests/${{ matrix.service }}
+          mkdir -p /tmp/digests
           digest="${{ steps.build.outputs.digest }}"
-          touch "/tmp/digests/${{ matrix.service }}/${digest#sha256:}"
+          touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ matrix.service }}-${{ env.PLATFORM_PAIR }}
-          path: /tmp/digests/${{ matrix.service }}/*
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
 
   merge-images:
     needs: [build-and-push]
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service:
-          - client
-          - server
     steps:
-      - name: Set image names
+      - name: Set image name
         run: |
-          BASE_NAME="${{ github.repository }}"
-          echo "IMAGE_NAME=${BASE_NAME,,}" >>${GITHUB_ENV}
-          echo "FULL_IMAGE_NAME=ghcr.io/${BASE_NAME,,}-${{ matrix.service }}" >>${GITHUB_ENV}
-
-      # ディレクトリが存在することを確認
-      - name: Create digests directory
-        run: |
-          mkdir -p /tmp/digests
-          cd /tmp/digests
-          pwd
-          ls -la
+          echo "IMAGE_NAME=${IMAGE_NAME,,}" >>${GITHUB_ENV}
+          echo "FULL_IMAGE_NAME=ghcr.io/${IMAGE_NAME,,}" >>${GITHUB_ENV}
+        env:
+          IMAGE_NAME: '${{ github.repository }}'
 
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
-          pattern: digests-${{ matrix.service }}-*
+          pattern: digests-*
           path: /tmp/digests
           merge-multiple: true
-
-      # ダウンロードしたファイルを確認
-      - name: List downloaded files
-        run: |
-          cd /tmp/digests
-          pwd
-          ls -la
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -170,31 +139,11 @@ jobs:
             latest=${{ github.ref == 'refs/heads/main' }}
 
       - name: Create and push manifest list
-        run: |
-          cd /tmp/digests
-          # ファイルの存在を確認
-          echo "Current directory contents:"
-          ls -la
-          
-          # ダイジェストファイルの一覧を作成
-          digests=""
-          for digest in *; do
-            if [ -f "$digest" ]; then
-              digests="$digests ${{ env.FULL_IMAGE_NAME }}@sha256:$digest"
-            fi
-          done
-          
-          # タグを取得
-          tags=$(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON")
-          
-          echo "Creating manifest list with tags: $tags"
-          echo "And digests: $digests"
-          
-          # マニフェストリストを作成
-          docker buildx imagetools create $tags $digests
         working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.FULL_IMAGE_NAME }}@sha256:%s ' *)
 
       - name: Inspect image
-        if: success()
         run: |
-          docker buildx imagetools inspect ${{ env.FULL_IMAGE_NAME }}:${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+          docker buildx imagetools inspect ${{ env.FULL_IMAGE_NAME }}:${{ steps.meta.outputs.version }}

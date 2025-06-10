@@ -54,7 +54,6 @@
 - Node.js 20.x
 - npm または yarn
 - Docker & Docker Compose
-- LibreOffice (PowerPointエクスポート用)
 
 ## 🚀 クイックスタート
 
@@ -68,6 +67,7 @@ cd marp-editable-ui
 # コンテナのビルドと起動
 docker-compose up --build
 ```
+注意: DockerのセットアップにはLibreOfficeが含まれているため、PowerPoint（PPTX）のエクスポートは追加のインストールなしで機能するはずです。
 
 ### ローカル環境での実行
 
@@ -126,26 +126,6 @@ marp-editable-ui/
 - PowerPoint (PPTX) 出力
 - PNG画像出力
 - HTMLエクスポート
-
-## 🔧 環境設定
-
-### PowerPointエクスポート用のLibreOfficeセットアップ
-
-#### Windows
-1. [Vector（窓の杜）](https://forest.watch.impress.co.jp/library/software/libreoffice/)からLibreOfficeをダウンロード
-2. インストーラーを実行
-3. デフォルト設定でインストール
-
-#### macOS
-```bash
-brew install --cask libreoffice
-```
-
-#### Linux (Ubuntu/Debian)
-```bash
-sudo apt-get update
-sudo apt-get install libreoffice
-```
 
 ## 🌐 ネットワーク設定
 

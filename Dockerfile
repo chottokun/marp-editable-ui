@@ -4,6 +4,7 @@ FROM node:23.7.0-bookworm-slim
 RUN apt-get update && apt-get install -y \
     libreoffice \
     libreoffice-writer \
+    libreoffice-impress \
     fonts-dejavu \
     fonts-liberation \
     fontconfig \

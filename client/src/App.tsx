@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import Header from './components/Header';
 import Editor from './components/Editor';
 import Preview from './components/Preview';
+// Import templates
+// @ts-ignore
+import defaultTemplate from './templates/default.md?raw';
+// @ts-ignore
+import presentationTemplate from './templates/presentation.md?raw';
 import './styles/global.css';
 import './styles/theme.css';
+// import 'react-resizable-panels/dist/styles.css'; // Assuming this is the correct path
 
 const socket = io('http://localhost:3001');
 
@@ -49,6 +56,11 @@ theme: default
 > デモスライドをお楽しみください！
 `;
 
+const templates = [
+  { name: 'Default', path: 'default.md', content: defaultTemplate },
+  { name: 'Presentation', path: 'presentation.md', content: presentationTemplate },
+];
+
 function App() {
   const [content, setContent] = useState(initialContent);
   const [preview, setPreview] = useState({ html: '', css: '' });
@@ -83,6 +95,16 @@ function App() {
     setContent(value);
     socket.emit('content-change', value);
     renderMarkdown(value);
+  };
+
+  // テンプレートの選択
+  const handleSelectTemplate = (templatePath: string) => {
+    const selectedTemplate = templates.find(t => t.path === templatePath);
+    if (selectedTemplate) {
+      setContent(selectedTemplate.content);
+      renderMarkdown(selectedTemplate.content);
+      socket.emit('content-change', selectedTemplate.content);
+    }
   };
 
   // ファイルの保存
@@ -130,24 +152,37 @@ function App() {
     <div className={`app theme-${theme}`}>
       <Header
         theme={theme}
+        theme={theme}
         content={content}
-        onNewFile={() => setContent(initialContent)}
+        onNewFile={() => {
+          setContent(initialContent);
+          renderMarkdown(initialContent);
+          socket.emit('content-change', initialContent);
+        }}
         onSaveFile={handleSaveFile}
         onThemeToggle={toggleTheme}
+        onSelectTemplate={handleSelectTemplate}
+        templates={templates.map(t => ({ name: t.name, path: t.path }))}
       />
 
       <div className="container">
-        <Editor
-          content={content}
-          theme={theme}
-          onChange={handleChange}
-        />
-        
-        <Preview
-          html={preview.html}
-          css={preview.css}
-          error={error}
-        />
+        <PanelGroup direction="horizontal" className="panel-group">
+          <Panel defaultSize={50} minSize={20} className="panel">
+            <Editor
+              content={content}
+              theme={theme}
+              onChange={handleChange}
+            />
+          </Panel>
+          <PanelResizeHandle className="resize-handle" />
+          <Panel defaultSize={50} minSize={20} className="panel">
+            <Preview
+              html={preview.html}
+              css={preview.css}
+              error={error}
+            />
+          </Panel>
+        </PanelGroup>
       </div>
     </div>
   );

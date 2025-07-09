@@ -7,6 +7,8 @@ interface HeaderProps {
   onNewFile: () => void;
   onSaveFile: () => void;
   onThemeToggle: () => void;
+  onSelectTemplate: (templateName: string) => void; // Add this line
+  templates: { name: string; path: string }[]; // Add this line
 }
 
 type ExportFormat = 'pptx' | 'html' | 'png';
@@ -16,7 +18,9 @@ const Header: FC<HeaderProps> = ({
   content,
   onNewFile,
   onSaveFile,
-  onThemeToggle
+  onThemeToggle,
+  onSelectTemplate, // Add this line
+  templates, // Add this line
 }) => {
   const [isExporting, setIsExporting] = useState(false);
 
@@ -58,6 +62,22 @@ const Header: FC<HeaderProps> = ({
       <div className="toolbar">
         <button onClick={onNewFile} disabled={isExporting}>新規</button>
         <button onClick={onSaveFile} disabled={isExporting}>保存</button>
+        <div className="dropdown">
+          <button className="dropdown-trigger" disabled={isExporting}>
+            📜 テンプレート
+          </button>
+          <div className="dropdown-content">
+            {templates.map((template) => (
+              <button
+                key={template.name}
+                onClick={() => onSelectTemplate(template.path)}
+                disabled={isExporting}
+              >
+                {template.name}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="dropdown">
           <button className="dropdown-trigger" disabled={isExporting}>
             {isExporting ? '⏳' : '📥'} エクスポート

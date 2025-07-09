@@ -74,3 +74,55 @@ html, body {
     transform: translateY(0);
   }
 }
+
+/* React Resizable Panels Styles */
+.panel-group {
+  display: flex;
+  height: 100%; /* Ensure the panel group takes full height */
+  width: 100%; /* Ensure the panel group takes full width */
+}
+
+.panel {
+  background-color: var(--background-color-secondary); /* Use theme variable */
+  border-radius: 8px;
+  overflow: hidden; /* Ensure content within panels does not overflow */
+  display: flex; /* Allow children to fill the panel */
+  flex-direction: column; /* Stack children vertically */
+}
+
+.resize-handle {
+  width: 12px !important; /* Ensure this overrides default if necessary */
+  background-color: var(--background-color-tertiary); /* Use theme variable */
+  border-left: 1px solid var(--border-color); /* Use theme variable */
+  border-right: 1px solid var(--border-color); /* Use theme variable */
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.resize-handle:hover {
+  background-color: var(--accent-color-secondary); /* Use theme variable */
+}
+
+.resize-handle::before {
+  content: "⋮";
+  color: var(--text-color-secondary); /* Use theme variable */
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* Ensure Editor and Preview components fill their respective panels */
+.editor, .preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: auto; /* Add scroll for content overflow */
+}
+
+.editor .cm-editor, .preview-content {
+  flex-grow: 1;
+  height: 100%; /* Ensure CodeMirror and preview content take full height */
+}

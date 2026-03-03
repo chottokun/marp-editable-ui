@@ -60,7 +60,8 @@ function App() {
   // マークダウンをレンダリング
   const renderMarkdown = async (markdown: string) => {
     try {
-      const response = await fetch(`http://${window.location.hostname}:3001/api/render`, {
+      const apiUrl = `http://${window.location.hostname}:3001`;
+      const response = await fetch(`${apiUrl}/api/render`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

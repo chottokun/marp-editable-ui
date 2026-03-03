@@ -1,4 +1,4 @@
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 
@@ -6,14 +6,18 @@ export class LlmService {
   static async generate(prompt) {
     console.log('🤖 AIスライド生成を開始します...', { prompt });
 
-    if (!process.env.OPENAI_API_KEY) {
-      console.log('⚠️ OPENAI_API_KEYが設定されていないため、モックデータを返します');
+    const apiKey = process.env.GEMINI_API_KEY;
+    const modelName = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+
+    if (!apiKey) {
+      console.log('⚠️ GEMINI_API_KEYが設定されていないため、モックデータを返します');
       return this.getMockData(prompt);
     }
 
     try {
-      const model = new ChatOpenAI({
-        modelName: "gpt-4o",
+      const model = new ChatGoogleGenerativeAI({
+        modelName: modelName,
+        apiKey: apiKey,
         temperature: 0.7,
       });
 
@@ -46,14 +50,18 @@ export class LlmService {
   static async optimize(markdown) {
     console.log('🤖 AIスライド最適化を開始します...');
 
-    if (!process.env.OPENAI_API_KEY) {
-      console.log('⚠️ OPENAI_API_KEYが設定されていないため、モックデータを返します');
+    const apiKey = process.env.GEMINI_API_KEY;
+    const modelName = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+
+    if (!apiKey) {
+      console.log('⚠️ GEMINI_API_KEYが設定されていないため、モックデータを返します');
       return markdown + "\n\n<!-- AIにより最適化されました（Mock） -->";
     }
 
     try {
-      const model = new ChatOpenAI({
-        modelName: "gpt-4o",
+      const model = new ChatGoogleGenerativeAI({
+        modelName: modelName,
+        apiKey: apiKey,
         temperature: 0.5,
       });
 
@@ -91,7 +99,7 @@ paginate: true
 
 ## プレゼンテーションの概要
 - AIによって生成されたサンプルスライドです
-- OPENAI_API_KEYを設定すると、本物のAIによる生成が可能です
+- GEMINI_API_KEYを設定すると、本物のAIによる生成が可能です
 
 ---
 

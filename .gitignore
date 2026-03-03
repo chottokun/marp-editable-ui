@@ -1,5 +1,7 @@
 # dependencies
-/node_modules
+node_modules/
+server_log.txt
+.gemini/
 
 # build outputs
 *.pdf

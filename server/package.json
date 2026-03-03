@@ -10,7 +10,8 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@langchain/openai": "^0.3.16",
+    "@langchain/core": "^1.1.29",
+    "@langchain/google-genai": "^2.1.23",
     "@marp-team/marp-cli": "^4.1.0",
     "@marp-team/marpit": "^3.1.2",
     "cors": "^2.8.5",

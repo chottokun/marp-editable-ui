@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // .envファイルの読み込み
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: true });
 
 import express from 'express';
 import { Server } from 'socket.io';
@@ -53,3 +53,6 @@ httpServer.listen(config.port, () => {
   console.log(`🛠️  実行環境: ${process.env.NODE_ENV || 'development'}`);
   console.log('===================================');
 });
+
+// タイムアウト設定（120秒）
+httpServer.timeout = 120000;

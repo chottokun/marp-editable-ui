@@ -74,7 +74,7 @@
   right: 0;
   min-width: 200px;
   padding: 0.5rem;
-  margin-top: 0.5rem;
+  /* margin-top: 0.5rem;  <-- この隙間が原因なので削除 */
   background: rgba(40, 44, 52, 0.95);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -86,7 +86,19 @@
   animation: fadeIn 0.2s ease-out;
 }
 
-.dropdown:hover .dropdown-content {
+/* ボタンとメニューの隙間を埋める透明な層 */
+.dropdown::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  display: none;
+}
+
+.dropdown:hover .dropdown-content,
+.dropdown:hover::after {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

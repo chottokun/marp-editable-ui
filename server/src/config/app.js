@@ -1,18 +1,17 @@
-import { Marpit } from '@marp-team/marpit';
+import { Marp } from '@marp-team/marp-core';
 
-// Marpitインスタンスの設定
+// Marpit (Marp Core) インスタンスの設定
 export const createMarpitInstance = () => {
-  const marpit = new Marpit({
-    markdown: {
-      html: true,
-      breaks: true,
-      linkify: true,
-      typographer: true
-    }
+  const marp = new Marp({
+    inlineSVG: false,
+    html: true,
+    breaks: true,
+    linkify: true,
+    typographer: true
   });
 
   // デフォルトテーマの設定
-  marpit.themeSet.default = marpit.themeSet.add(`
+  marp.themeSet.default = marp.themeSet.add(`
   /* @theme default */
   section {
     width: 960px;
@@ -95,7 +94,7 @@ export const createMarpitInstance = () => {
   }
   `);
 
-  return marpit;
+  return marp;
 };
 
 // サーバー設定

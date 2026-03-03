@@ -25,9 +25,9 @@ WORKDIR /app
 COPY . .
 
 # 依存関係のインストール
-RUN npm install && \
-    cd client && npm install && \
-    cd ../server && npm install
+RUN npm install --legacy-peer-deps && \
+    cd client && npm install --legacy-peer-deps && \
+    cd ../server && npm install --legacy-peer-deps
 
 # Viteサーバーをホストから接続可能にする
 ENV HOST=0.0.0.0

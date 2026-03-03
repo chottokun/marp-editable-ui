@@ -7,6 +7,7 @@ const router = express.Router();
 
 // マークダウンのレンダリングエンドポイント
 router.post('/render', (req, res) => {
+  console.log('📬 [POST] /api/render');
   try {
     const { html, css } = MarpService.render(req.body.markdown);
     res.json({ html, css });

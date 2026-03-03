@@ -24,13 +24,19 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
       });
+      
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || `Server error: ${response.status}`);
+      }
+
       if (data.markdown) {
         setResult(data.markdown);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI generation error:', error);
-      alert('AIによる生成に失敗しました');
+      alert(`AIによる生成に失敗しました: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -44,13 +50,19 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ markdown: currentMarkdown }),
       });
+      
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `Server error: ${response.status}`);
+      }
+
       if (data.markdown) {
         setResult(data.markdown);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI optimization error:', error);
-      alert('AIによる最適化に失敗しました');
+      alert(`AIによる最適化に失敗しました: ${error.message}`);
     } finally {
       setLoading(false);
     }

@@ -7,7 +7,7 @@ import AiAssistant from './components/AiAssistant';
 import './styles/global.css';
 import './styles/theme.css';
 
-const socket = io('http://localhost:3001');
+const socket = io(`http://${window.location.hostname}:3001`);
 
 const initialContent = `---
 marp: true
@@ -60,7 +60,7 @@ function App() {
   // マークダウンをレンダリング
   const renderMarkdown = async (markdown: string) => {
     try {
-      const response = await fetch('http://localhost:3001/api/render', {
+      const response = await fetch(`http://${window.location.hostname}:3001/api/render`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

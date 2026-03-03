@@ -1,26 +1,47 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 
 export class LlmService {
+  /**
+   * 使用するチャットモデルを取得する
+   */
+  static getChatModel(temperature = 0.7) {
+    const provider = process.env.LLM_PROVIDER || 'google'; // デフォルトは google
+    
+    if (provider === 'openai' && process.env.OPENAI_API_KEY) {
+      console.log('🤖 OpenAI (GPT-4o) を使用します');
+      return new ChatOpenAI({
+        modelName: process.env.OPENAI_MODEL || "gpt-4o",
+        apiKey: process.env.OPENAI_API_KEY,
+        temperature,
+      });
+    }
+
+    if (process.env.GEMINI_API_KEY) {
+      console.log('🤖 Google Gemini を使用します');
+      return new ChatGoogleGenerativeAI({
+        modelName: process.env.GEMINI_MODEL || "gemini-1.5-flash",
+        apiKey: process.env.GEMINI_API_KEY,
+        temperature,
+      });
+    }
+
+    return null;
+  }
+
   static async generate(prompt) {
     console.log('🤖 AIスライド生成を開始します...', { prompt });
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    const modelName = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+    const model = this.getChatModel(0.7);
 
-    if (!apiKey) {
-      console.log('⚠️ GEMINI_API_KEYが設定されていないため、モックデータを返します');
+    if (!model) {
+      console.log('⚠️ APIキーが設定されていないため、モックデータを返します');
       return this.getMockData(prompt);
     }
 
     try {
-      const model = new ChatGoogleGenerativeAI({
-        modelName: modelName,
-        apiKey: apiKey,
-        temperature: 0.7,
-      });
-
       const template = PromptTemplate.fromTemplate(`
         あなたはプロのプレゼンテーションデザイナーです。
         以下のテーマに基づいて、Marp（Markdown Presentation Ecosystem）形式のスライドを作成してください。
@@ -50,21 +71,14 @@ export class LlmService {
   static async optimize(markdown) {
     console.log('🤖 AIスライド最適化を開始します...');
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    const modelName = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+    const model = this.getChatModel(0.5);
 
-    if (!apiKey) {
-      console.log('⚠️ GEMINI_API_KEYが設定されていないため、モックデータを返します');
+    if (!model) {
+      console.log('⚠️ APIキーが設定されていないため、モックデータを返します');
       return markdown + "\n\n<!-- AIにより最適化されました（Mock） -->";
     }
 
     try {
-      const model = new ChatGoogleGenerativeAI({
-        modelName: modelName,
-        apiKey: apiKey,
-        temperature: 0.5,
-      });
-
       const template = PromptTemplate.fromTemplate(`
         以下のMarp形式のマークダウンを改善してください。
         内容をより簡潔にし、プレゼンテーションとして魅力的な表現に修正してください。
@@ -99,7 +113,7 @@ paginate: true
 
 ## プレゼンテーションの概要
 - AIによって生成されたサンプルスライドです
-- GEMINI_API_KEYを設定すると、本物のAIによる生成が可能です
+- GEMINI_API_KEY または OPENAI_API_KEY を設定すると、本物のAIによる生成が可能です
 
 ---
 

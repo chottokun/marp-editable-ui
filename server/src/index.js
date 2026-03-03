@@ -1,17 +1,22 @@
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// .envファイルの読み込み
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
 import express from 'express';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
 import cors from 'cors';
-import { fileURLToPath } from 'url';
-import path from 'path';
 import { config } from './config/app.js';
 import apiRoutes from './routes/api.js';
 import llmRoutes from './routes/llm.js';
 import { setupWebSocket } from './websocket/socket.js';
 import { errorHandler, setupErrorHandlers, notFoundHandler } from './middleware/error.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Expressアプリケーションの設定
 const app = express();

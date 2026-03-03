@@ -11,9 +11,11 @@ export class LlmService {
     const provider = process.env.LLM_PROVIDER || 'google'; // デフォルトは google
     
     if (provider === 'openai' && process.env.OPENAI_API_KEY) {
-      console.log('🤖 OpenAI (GPT-4o) を使用します');
+      console.log('🤖 OpenAI を使用します');
+      const modelName = process.env.OPENAI_MODEL || "gpt-4o";
       return new ChatOpenAI({
-        modelName: process.env.OPENAI_MODEL || "gpt-4o",
+        model: modelName,
+        modelName: modelName,
         apiKey: process.env.OPENAI_API_KEY,
         temperature,
       });
@@ -21,9 +23,13 @@ export class LlmService {
 
     if (process.env.GEMINI_API_KEY) {
       console.log('🤖 Google Gemini を使用します');
+      const apiKey = process.env.GEMINI_API_KEY.trim();
+      const modelName = String(process.env.GEMINI_MODEL || "gemini-1.5-flash");
+      
       return new ChatGoogleGenerativeAI({
-        modelName: process.env.GEMINI_MODEL || "gemini-1.5-flash",
-        apiKey: process.env.GEMINI_API_KEY,
+        model: modelName,
+        modelName: modelName,
+        apiKey: apiKey,
         temperature,
       });
     }

@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 import Header from './components/Header';
 import Editor from './components/Editor';
 import Preview from './components/Preview';
+import AiAssistant from './components/AiAssistant';
 import './styles/global.css';
 import './styles/theme.css';
 
@@ -54,6 +55,7 @@ function App() {
   const [preview, setPreview] = useState({ html: '', css: '' });
   const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState<'dark' | 'warm'>('warm');
+  const [isAiOpen, setIsAiOpen] = useState(false);
 
   // マークダウンをレンダリング
   const renderMarkdown = async (markdown: string) => {
@@ -126,6 +128,12 @@ function App() {
     document.body.className = theme === 'dark' ? 'theme-warm' : 'theme-dark';
   };
 
+  // AIアシスタントからの適用
+  const handleApplyAiMarkdown = (markdown: string) => {
+    setContent(markdown);
+    renderMarkdown(markdown);
+  };
+
   return (
     <div className={`app theme-${theme}`}>
       <Header
@@ -134,6 +142,7 @@ function App() {
         onNewFile={() => setContent(initialContent)}
         onSaveFile={handleSaveFile}
         onThemeToggle={toggleTheme}
+        onAiAssistantOpen={() => setIsAiOpen(true)}
       />
 
       <div className="container">
@@ -149,6 +158,13 @@ function App() {
           error={error}
         />
       </div>
+
+      <AiAssistant
+        isOpen={isAiOpen}
+        onClose={() => setIsAiOpen(false)}
+        onApplyMarkdown={handleApplyAiMarkdown}
+        currentMarkdown={content}
+      />
     </div>
   );
 }

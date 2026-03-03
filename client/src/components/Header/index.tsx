@@ -7,6 +7,7 @@ interface HeaderProps {
   onNewFile: () => void;
   onSaveFile: () => void;
   onThemeToggle: () => void;
+  onAiAssistantOpen: () => void;
 }
 
 type ExportFormat = 'pptx' | 'html' | 'png';
@@ -16,7 +17,8 @@ const Header: FC<HeaderProps> = ({
   content,
   onNewFile,
   onSaveFile,
-  onThemeToggle
+  onThemeToggle,
+  onAiAssistantOpen
 }) => {
   const [isExporting, setIsExporting] = useState(false);
 
@@ -56,6 +58,14 @@ const Header: FC<HeaderProps> = ({
     <header className="header">
       <h1>✨ Marp Editable Slides Demo</h1>
       <div className="toolbar">
+        <button
+          className="ai-button"
+          onClick={onAiAssistantOpen}
+          disabled={isExporting}
+          style={{ background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', color: 'white', border: 'none' }}
+        >
+          🤖 AI Assistant
+        </button>
         <button onClick={onNewFile} disabled={isExporting}>新規</button>
         <button onClick={onSaveFile} disabled={isExporting}>保存</button>
         <div className="dropdown">

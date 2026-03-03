@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { config } from './config/app.js';
 import apiRoutes from './routes/api.js';
+import llmRoutes from './routes/llm.js';
 import { setupWebSocket } from './websocket/socket.js';
 import { errorHandler, setupErrorHandlers, notFoundHandler } from './middleware/error.js';
 
@@ -27,6 +28,7 @@ app.use(express.json());
 
 // ルーティングの設定
 app.use('/api', apiRoutes);
+app.use('/api/llm', llmRoutes);
 
 // WebSocketの設定
 setupWebSocket(io);

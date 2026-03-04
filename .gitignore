@@ -7,6 +7,7 @@ server_log.txt
 *.pdf
 *.pptx
 *.html
+!client/index.html
 
 # OS generated files
 .DS_Store

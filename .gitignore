@@ -26,3 +26,4 @@ Thumbs.db
 .SourceSageAssets/
 issue_creator.log
 .env
+*.log

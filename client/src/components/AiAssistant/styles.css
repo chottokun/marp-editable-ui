@@ -51,6 +51,33 @@
   overflow-y: auto;
 }
 
+.ai-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.slide-count-input {
+  width: 60px !important;
+  min-height: unset !important;
+  padding: 0.4rem !important;
+  text-align: center;
+  border-radius: 4px !important;
+  border: 1px solid var(--border-color) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text-primary) !important;
+}
+
+.ai-assistant-divider-line {
+  height: 1px;
+  background: var(--border-color);
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+}
+
 .ai-assistant-section {
   display: flex;
   flex-direction: column;

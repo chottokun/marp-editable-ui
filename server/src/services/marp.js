@@ -14,63 +14,8 @@ export class MarpService {
       throw new Error('マークダウンが提供されていません');
     }
 
-    // レンダリング直前の強制補正ロジック
-    let normalized = markdown;
-
-    // 0. 改行コードを LF に統一し、Marpの解析器を安定させる
-    normalized = normalized.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-
-    // 1. 特殊な引用符・装飾引用符をすべて標準的な半角に置換
-    normalized = normalized
-      .replace(/[\u2018\u2019\u201A\u201B\u2039\u203A\u300C\u300D‘’「」]/g, "'")
-      .replace(/[\u201C\u201D\u201E\u201F\u00AB\u00BB\u300E\u300F“”『』]/g, '"');
-
-    // 2. HTMLコメントを削除
-    normalized = normalized.replace(/<!--[\s\S]*?-->/g, '');
-
-    // 3. HTMLコメント内の命令を一時的に保護し、コメント外にある命令を自動的にコメント化する
-    // これにより、Marpが100%確実に命令を認識できるようにする
-    const lines = normalized.split('\n');
-    let inFrontMatter = false;
-    let frontMatterCount = 0;
-    
-    normalized = lines.map(line => {
-      const trimmed = line.trim();
-      
-      // フロントマター（設定ブロック）の判定
-      if (trimmed === '---') {
-        frontMatterCount++;
-        inFrontMatter = (frontMatterCount === 1);
-        return line;
-      }
-      
-      if (inFrontMatter) return line;
-      
-      // 命令（ディレクティブ）のパターン
-      const directivePattern = /^(_class|backgroundColor|color|backgroundImage|backgroundSize|backgroundPosition|backgroundRepeat|backgroundOpacity|header|footer|paginate|theme|marp):/i;
-      
-      if (directivePattern.test(trimmed)) {
-        // すでにコメントで囲まれていない場合のみ囲む
-        if (!trimmed.startsWith('<!--') && !trimmed.endsWith('-->')) {
-          return `<!-- ${trimmed} -->`;
-        }
-      }
-      
-      return line;
-    }).join('\n');
-
-    // 4. 冒頭に --- がない場合、強制的に挿入（フロントマターを有効にするため）
-    if (!normalized.trim().startsWith('---')) {
-      normalized = '---\nmarp: true\n---\n' + normalized.trim();
-    }
-
-    // 5. スライド区切り(---)の直後の不要な空行を削除
-    normalized = normalized.replace(/^---\s*\n+/gm, '---\n');
-
-    console.log('--- Final Normalized Markdown (First 300 chars) ---');
-    console.log(normalized.substring(0, 300));
-    console.log('--------------------------------------------------');
-
+    // 最小限の正規化: 改行コードを LF に統一
+    const normalized = markdown.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
     try {
       const { html, css } = marp.render(normalized);

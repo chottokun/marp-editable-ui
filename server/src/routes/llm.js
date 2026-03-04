@@ -6,11 +6,11 @@ const router = express.Router();
 // AIによるスライド生成エンドポイント
 router.post('/generate', async (req, res) => {
   try {
-    const { prompt } = req.body;
+    const { prompt, slideCount } = req.body;
     if (!prompt) {
       return res.status(400).json({ error: 'プロンプトが必要です' });
     }
-    const markdown = await LlmService.generate(prompt);
+    const markdown = await LlmService.generate(prompt, slideCount);
     res.json({ markdown });
   } catch (error) {
     console.error('AI生成エラー:', error);
@@ -24,11 +24,11 @@ router.post('/generate', async (req, res) => {
 // AIによるスライド最適化エンドポイント
 router.post('/optimize', async (req, res) => {
   try {
-    const { markdown } = req.body;
+    const { markdown, instruction, slideCount } = req.body;
     if (!markdown) {
       return res.status(400).json({ error: 'マークダウンが必要です' });
     }
-    const optimizedMarkdown = await LlmService.optimize(markdown);
+    const optimizedMarkdown = await LlmService.optimize(markdown, instruction, slideCount);
     res.json({ markdown: optimizedMarkdown });
   } catch (error) {
     console.error('AI最適化エラー:', error);

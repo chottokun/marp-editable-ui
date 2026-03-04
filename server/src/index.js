@@ -26,7 +26,7 @@ const io = new Server(httpServer, config.cors);
 // ミドルウェアの設定
 // CORSの設定
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: true,
   credentials: true
 }));
 app.use(express.json());
@@ -44,7 +44,7 @@ app.use(errorHandler);
 setupErrorHandlers();
 
 // サーバーの起動
-httpServer.listen(config.port, () => {
+httpServer.listen(config.port, '0.0.0.0', () => {
   console.log('===================================');
   console.log('🚀 Marpサーバーが起動しました');
   console.log('-----------------------------------');

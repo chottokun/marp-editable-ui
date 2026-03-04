@@ -21,8 +21,7 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
     if (!prompt) return;
     try {
       setLoading(true);
-      const apiUrl = 'http://127.0.0.1:3001';
-      const response = await fetch(`${apiUrl}/api/llm/generate`, {
+      const response = await fetch('/api/llm/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -51,8 +50,7 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
   const handleOptimize = async () => {
     try {
       setLoading(true);
-      const apiUrl = 'http://127.0.0.1:3001';
-      const response = await fetch(`${apiUrl}/api/llm/optimize`, {
+      const response = await fetch('/api/llm/optimize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

@@ -101,8 +101,9 @@ export const createMarpitInstance = () => {
 export const config = {
   port: process.env.PORT || 3001,
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true
   },
   contentTypes: {
     'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',

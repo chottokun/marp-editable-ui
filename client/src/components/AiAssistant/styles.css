@@ -135,17 +135,32 @@
 .generate-button {
   background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .optimize-button {
-  background: var(--border-color);
-  color: var(--text-primary);
+  background: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.generate-button:hover,
+.optimize-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.generate-button:active,
+.optimize-button:active {
+  transform: translateY(0);
 }
 
 .generate-button:disabled,
 .optimize-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .ai-assistant-result {

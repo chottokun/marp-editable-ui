@@ -8,7 +8,7 @@ import AiAssistant from './components/AiAssistant';
 import './styles/global.css';
 import './styles/theme.css';
 
-const socket = io('http://127.0.0.1:3001');
+const socket = io();
 
 const initialContent = `---
 marp: true
@@ -65,15 +65,14 @@ function App() {
   // マークダウンをレンダリング
   const renderMarkdown = async (markdown: string) => {
     try {
-      const apiUrl = 'http://127.0.0.1:3001';
-      const response = await fetch(`${apiUrl}/api/render`, {
+      const response = await fetch('/api/render', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ markdown }),
       });
-      
+
       if (!response.ok) {
         throw new Error('レンダリングに失敗しました');
       }
@@ -117,7 +116,7 @@ function App() {
       const containerRect = containerRef.current.getBoundingClientRect();
       const relativeX = e.clientX - containerRect.left;
       const newWidth = (relativeX / containerRect.width) * 100;
-      
+
       if (newWidth > 15 && newWidth < 85) {
         setEditorWidth(newWidth);
       }
@@ -183,9 +182,9 @@ function App() {
           onChange={handleChange}
           style={!isMobile ? { width: `${editorWidth}%`, flex: 'none' } : {}}
         />
-        
-        <div 
-          className={`resizer ${isResizing ? 'is-resizing' : ''}`} 
+
+        <div
+          className={`resizer ${isResizing ? 'is-resizing' : ''}`}
           onMouseDown={startResizing}
         />
 

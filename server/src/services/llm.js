@@ -1,6 +1,5 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatOpenAI } from "@langchain/openai";
-import { PromptTemplate } from "@langchain/core/prompts";
 import { z } from "zod";
 
 /**
@@ -52,6 +51,15 @@ export class LlmService {
     let md = "---\nmarp: true\n";
     md += `theme: ${data.config.theme || 'default'}\n`;
     if (data.config.paginate) md += "paginate: true\n";
+    
+    // グローバルなスタイル設定をフロントマターに追加
+    // (最初のスライドのスタイルを全体のデフォルトとして採用するロジック)
+    const globalStyle = data.slides[0]?.style;
+    if (globalStyle) {
+      if (globalStyle.backgroundColor) md += `backgroundColor: "${globalStyle.backgroundColor}"\n`;
+      if (globalStyle.color) md += `color: "${globalStyle.color}"\n`;
+    }
+
     if (data.config.header) md += `header: "${normalize(data.config.header)}"\n`;
     if (data.config.footer) md += `footer: "${normalize(data.config.footer)}"\n`;
     md += "---\n\n";
@@ -60,23 +68,29 @@ export class LlmService {
       if (index > 0) md += "\n---\n\n";
       
       const directives = [];
-      if (slide.style) {
+      
+      // グローバル（1枚目のスタイル）と異なる場合のみ個別設定を出力
+      if (slide.style && index > 0) {
         if (slide.style.class && slide.style.class !== 'default') {
           directives.push(`_class: ${slide.style.class}`);
         }
-        if (slide.style.backgroundColor) {
-          directives.push(`backgroundColor: "${slide.style.backgroundColor}"`);
+        if (slide.style.backgroundColor && slide.style.backgroundColor !== globalStyle?.backgroundColor) {
+          directives.push(`_backgroundColor: "${slide.style.backgroundColor}"`);
         }
-        if (slide.style.color) {
-          directives.push(`color: "${slide.style.color}"`);
+        if (slide.style.color && slide.style.color !== globalStyle?.color) {
+          directives.push(`_color: "${slide.style.color}"`);
         }
-        if (slide.style.backgroundImage) {
-          directives.push(`backgroundImage: url("${slide.style.backgroundImage}")`);
-        }
+      } else if (slide.style?.class && slide.style.class !== 'default') {
+        // 1枚目でも class (lead 等) は個別に出力
+        directives.push(`_class: ${slide.style.class}`);
       }
       
-      if (slide.header) directives.push(`header: "${normalize(slide.header)}"`);
-      if (slide.footer) directives.push(`footer: "${normalize(slide.footer)}"`);
+      if (slide.header && normalize(slide.header) !== normalize(data.config.header)) {
+        directives.push(`_header: "${normalize(slide.header)}"`);
+      }
+      if (slide.footer && normalize(slide.footer) !== normalize(data.config.footer)) {
+        directives.push(`_footer: "${normalize(slide.footer)}"`);
+      }
 
       if (directives.length > 0) {
         md += directives.join('\n') + '\n\n';
@@ -158,17 +172,17 @@ export class LlmService {
       // 最新の Structured Output 設定
       const structuredModel = model.withStructuredOutput(PresentationSchema);
 
-      // 既存のMarkdownを構造化データとして改善させる（枚数指定がある場合はそれを反映）
-      const countInstruction = slideCount ? `最終的なスライド枚数は ${slideCount} 枚にしてください。` : "";
+      // プロンプトを構造化出力に特化させる
+      const countInstruction = slideCount ? `、スライド枚数は ${slideCount} 枚` : "";
       const result = await structuredModel.invoke(`
-        以下のMarpスライドを改善してください。
-        指示: ${instruction || "プロの視点で全体を改善し、簡潔にまとめてください。"}
-        ${countInstruction}
+        以下のMarp Markdownを、指示に従って最適化・変形した【構造化データ】として返してください。
+        指示: ${instruction || "プロの視点で全体を改善し、簡潔にまとめてください。"}${countInstruction}
         対象Markdown:
         ${markdown}
       `);
       
       console.log('✅ AI最適化（構造化）が完了しました。');
+      // AIから得られたJSONオブジェクトをMarkdownに変換して返す
       return this.renderStructuredToMarkdown(result);
     } catch (error) {
       console.error('❌ AI最適化エラー詳細:', error);

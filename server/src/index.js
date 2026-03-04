@@ -21,12 +21,14 @@ import { errorHandler, setupErrorHandlers, notFoundHandler } from './middleware/
 // Expressアプリケーションの設定
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, config.cors);
+const io = new Server(httpServer, {
+  cors: config.cors
+});
 
 // ミドルウェアの設定
 // CORSの設定
 app.use(cors({
-  origin: true,
+  origin: 'http://localhost:5173',
   credentials: true
 }));
 app.use(express.json());

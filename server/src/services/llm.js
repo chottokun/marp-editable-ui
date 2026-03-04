@@ -1,9 +1,94 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { StringOutputParser } from "@langchain/core/output_parsers";
+import { z } from "zod";
+
+/**
+ * スライド1枚の構造定義
+ */
+const SlideSchema = z.object({
+  title: z.string().describe("スライドのタイトル。必ず簡潔で分かりやすいものにすること。"),
+  content: z.string().describe("スライドの本文（マークダウン形式、箇条書き、強調などを活用）。"),
+  style: z.object({
+    class: z.enum(["lead", "invert", "default"]).optional().describe("スライドのクラス。中央揃えは lead、色反転は invert。"),
+    backgroundColor: z.string().optional().describe("背景色 (例: #ffffff, #003366)。"),
+    color: z.string().optional().describe("文字色 (例: #000000, #ffffff)。"),
+    backgroundImage: z.string().optional().describe("背景画像URL。"),
+  }).optional().describe("スライドごとの個別スタイル設定。"),
+  header: z.string().optional().describe("このスライド専用のヘッダー。"),
+  footer: z.string().optional().describe("このスライド専用のフッター。"),
+});
+
+/**
+ * プレゼンテーション全体の構造定義
+ */
+const PresentationSchema = z.object({
+  config: z.object({
+    theme: z.enum(["default", "gaia", "uncover"]).describe("Marpの基本テーマ。"),
+    paginate: z.boolean().describe("ページ番号を表示するかどうか。"),
+    header: z.string().optional().describe("全スライド共通のヘッダー。"),
+    footer: z.string().optional().describe("全スライド共通のフッター。"),
+  }).describe("プレゼンテーションの全般設定。"),
+  slides: z.array(SlideSchema).min(3).max(15).describe("スライドのリスト。"),
+});
 
 export class LlmService {
+  /**
+   * 構造化データをMarp Markdownに変換する
+   */
+  static renderStructuredToMarkdown(data) {
+    if (!data || !data.slides) {
+      throw new Error("構造化データが不正です。");
+    }
+
+    // 引用符の正規化（全角や装飾引用符を半角に置換）
+    const normalize = (str) => {
+      if (!str) return str;
+      return str
+        .replace(/[\u2018\u2019\u201A\u201B\u2039\u203A\u300C\u300D]/g, "'")
+        .replace(/[\u201C\u201D\u201E\u201F\u00AB\u00BB\u300E\u300F]/g, '"');
+    };
+
+    let md = "---\nmarp: true\n";
+    md += `theme: ${data.config.theme || 'default'}\n`;
+    if (data.config.paginate) md += "paginate: true\n";
+    if (data.config.header) md += `header: "${normalize(data.config.header)}"\n`;
+    if (data.config.footer) md += `footer: "${normalize(data.config.footer)}"\n`;
+    md += "---\n\n";
+
+    data.slides.forEach((slide, index) => {
+      if (index > 0) md += "\n---\n\n";
+      
+      const directives = [];
+      if (slide.style) {
+        if (slide.style.class && slide.style.class !== 'default') {
+          directives.push(`_class: ${slide.style.class}`);
+        }
+        if (slide.style.backgroundColor) {
+          directives.push(`backgroundColor: "${slide.style.backgroundColor}"`);
+        }
+        if (slide.style.color) {
+          directives.push(`color: "${slide.style.color}"`);
+        }
+        if (slide.style.backgroundImage) {
+          directives.push(`backgroundImage: url("${slide.style.backgroundImage}")`);
+        }
+      }
+      
+      if (slide.header) directives.push(`header: "${normalize(slide.header)}"`);
+      if (slide.footer) directives.push(`footer: "${normalize(slide.footer)}"`);
+
+      if (directives.length > 0) {
+        md += directives.join('\n') + '\n\n';
+      }
+
+      md += `# ${normalize(slide.title)}\n\n`;
+      md += `${normalize(slide.content)}\n`;
+    });
+
+    return md;
+  }
+
   /**
    * 使用するチャットモデルを取得する
    */
@@ -38,7 +123,7 @@ export class LlmService {
   }
 
   static async generate(prompt) {
-    console.log('🤖 AIスライド生成を開始します...', { prompt });
+    console.log('🤖 AIスライド生成（構造化出力）を開始します...', { prompt });
 
     try {
       const model = this.getChatModel(0.7);
@@ -48,77 +133,29 @@ export class LlmService {
         return this.getMockData(prompt);
       }
 
-      console.log('📡 LangChain チェーンを実行中...');
+      console.log('📡 LangChain チェーン（構造化）を実行中...');
+      
+      const structuredModel = model.withStructuredOutput(PresentationSchema);
+
       const template = PromptTemplate.fromTemplate(`
         あなたはプロのプレゼンテーションデザイナーです。
-        以下のテーマに基づいて、視覚的に美しく、バリエーション豊かなMarp（Markdown Presentation Ecosystem）形式のスライドを作成してください。
+        以下のテーマに基づいて、視覚的に美しく、構造化されたプレゼンテーションデータを作成してください。
 
         テーマ: {prompt}
 
-        デザイン要件:
-        - テーマは内容に合わせて 'default', 'gaia', 'uncover' から最適なものを選択すること
-        - 【重要】HTMLコメント（<!-- ... -->）は出力に含めないでください。
-        - Marpの高度な機能（ディレクティブ）を正しく使用すること:
-          - 【重要】ファイル冒頭に \`marp: true\` を含むフロントマターを必ず記述してください。
-          - 【重要】各スライドは必ず \`---\` で区切り、その直後の行から命令（_class等）を記述してください。
-          - 【重要】空行、コメント、余計な文字を \`---\` と命令の間に絶対に入れないでください。
-          - 【例】
-            ---
-            marp: true
-            theme: gaia
-            ---
-            _class: lead
-            backgroundColor: "#00796b"
-            color: "#ffffff"
-
-            # タイトル
-
-            ---
-            _class: invert
-
-            # 次のスライド
-          - \`_class: lead\` (中央揃えのインパクトあるスライド)
-
-          - \`_class: invert\` (色の反転)
-          - \`backgroundColor\`, \`color\` による背景・文字色のカスタマイズ
-          - \`backgroundImage: url('...')\` (プレースホルダ画像を利用)
-          - \`header\`, \`footer\`, \`paginate: true\` の活用
-        - 【重要】引用符には全角や特殊な文字（‘, ’, “, ”）を絶対に使用せず、必ず標準的な半角（', "）のみを使用してください。
-        - 必要に応じてHTMLタグ（<div style="...">など）を使用して、より複雑なレイアウト（左右分割など）を模倣すること
-
-        構成要件:
-        - 日本語で作成すること
-        - 6枚から10枚程度の構成にすること
-        - 専門的かつ分かりやすい内容にすること
-
-        出力はMarkdown形式のみとし、\`\`\`markdown などの囲み記号は一切含めないでください。
+        設計指針:
+        - テーマ（theme）は内容に合わせて 'default', 'gaia', 'uncover' から最適なものを選択すること。
+        - 各スライドには適切なスタイル（class, backgroundColor等）を設定し、視覚的なバリエーションを持たせること。
+        - 6枚から10枚程度の構成にすること。
+        - 日本語で作成すること。
       `);
 
-      const chain = template.pipe(model).pipe(new StringOutputParser());
-      let result = await chain.invoke({ prompt });
-      console.log('✅ AI生成が完了しました。文字数:', result.length);
+      const chain = template.pipe(structuredModel);
+      const result = await chain.invoke({ prompt });
+      
+      console.log('✅ AI生成（構造化）が完了しました。スライド数:', result.slides.length);
 
-      // 不要なコードブロック記号を除去
-      result = result.replace(/^```markdown\n/, '').replace(/^```\n?/, '').replace(/\n```$/, '');
-
-      // HTMLコメント（<!-- ... -->）を削除（Marpの解析を妨げるため）
-      result = result.replace(/<!--[\s\S]*?-->/g, '');
-
-      // 特殊な引用符・装飾引用符をすべて標準的な半角に置換
-      // さまざまな種類の引用符（全角、スマートクオート等）を網羅
-      result = result
-        .replace(/[\u2018\u2019\u201A\u201B\u2039\u203A\u300C\u300D]/g, "'")
-        .replace(/[\u201C\u201D\u201E\u201F\u00AB\u00BB\u300E\u300F]/g, '"');
-
-      // スライド区切り(---)の直後の空行を削除してディレクティブを確実に先頭にする
-      result = result.replace(/^---\s*\n\s*\n/gm, '---\n');
-
-      // 冒頭に --- がない場合、強制的に挿入（フロントマターを有効にするため）
-      if (!result.trim().startsWith('---')) {
-        result = '---\n' + result.trim();
-      }
-
-      return result;
+      return this.renderStructuredToMarkdown(result);
     } catch (error) {
       console.error('❌ AI生成エラー詳細:', error);
       if (error.stack) console.error(error.stack);
@@ -127,7 +164,7 @@ export class LlmService {
   }
 
   static async optimize(markdown) {
-    console.log('🤖 AIスライド最適化を開始します...');
+    console.log('🤖 AIスライド最適化（構造化出力）を開始します...');
 
     try {
       const model = this.getChatModel(0.5);
@@ -137,47 +174,29 @@ export class LlmService {
         return markdown + "\n\n<!-- AIにより最適化されました（Mock） -->";
       }
 
-      console.log('📡 LangChain チェーン（最適化）を実行中...');
+      console.log('📡 LangChain チェーン（最適化・構造化）を実行中...');
+      
+      const structuredModel = model.withStructuredOutput(PresentationSchema);
+
       const template = PromptTemplate.fromTemplate(`
-        以下のMarp形式のマークダウンをプロのプレゼンテーションデザイナーとして改善してください。
+        以下のMarp形式のマークダウンをプロのプレゼンテーションデザイナーとして改善し、構造化されたデータとして返してください。
         内容をより簡潔にし、視覚的に訴求力のあるデザイン（Marpの機能を駆使）に修正してください。
 
         対象マークダウン:
         {markdown}
 
         改善要件:
-        - 視覚的なバリエーションを増やすこと（_class, backgroundColor, backgroundImageの適切な挿入）
-        - 【重要】ディレクティブは必ずスライドの区切り（---）の直後、スライドの最上部に記述してください。
+        - 視覚的なバリエーションを増やすこと（styleの適切な設定）
         - 情報を構造化し、プレゼンテーションとしてインパクトのある構成にすること
         - 日本語で出力すること
-        - 【重要】引用符には全角や特殊な文字（‘, ’, “, ”）を絶対に使用せず、必ず標準的な半角（', "）のみを使用してください。
-        - 出力は改善したMarkdown形式のみとし、\`\`\`markdown などの囲み記号は一切含めないでください。
       `);
 
-      const chain = template.pipe(model).pipe(new StringOutputParser());
-      let result = await chain.invoke({ markdown });
-      console.log('✅ AI最適化が完了しました。文字数:', result.length);
+      const chain = template.pipe(structuredModel);
+      const result = await chain.invoke({ markdown });
+      
+      console.log('✅ AI最適化（構造化）が完了しました。スライド数:', result.slides.length);
 
-      // 不要なコードブロック記号を除去
-      result = result.replace(/^```markdown\n/, '').replace(/^```\n?/, '').replace(/\n```$/, '');
-
-      // HTMLコメント（<!-- ... -->）を削除
-      result = result.replace(/<!--[\s\S]*?-->/g, '');
-
-      // 特殊な引用符・装飾引用符をすべて標準的な半角に置換
-      result = result
-        .replace(/[\u2018\u2019\u201A\u201B\u2039\u203A\u300C\u300D]/g, "'")
-        .replace(/[\u201C\u201D\u201E\u201F\u00AB\u00BB\u300E\u300F]/g, '"');
-
-      // スライド区切り(---)の直後の空行を削除
-      result = result.replace(/^---\s*\n\s*\n/gm, '---\n');
-
-      // 冒頭に --- がない場合、強制的に挿入（フロントマターを有効にするため）
-      if (!result.trim().startsWith('---')) {
-        result = '---\n' + result.trim();
-      }
-
-      return result;
+      return this.renderStructuredToMarkdown(result);
     } catch (error) {
       console.error('❌ AI最適化エラー詳細:', error);
       if (error.stack) console.error(error.stack);
@@ -186,30 +205,31 @@ export class LlmService {
   }
 
   static getMockData(prompt) {
-    return `---
-marp: true
-theme: default
-paginate: true
----
-
-# ${prompt}
-
-## プレゼンテーションの概要
-- AIによって生成されたサンプルスライドです
-- GEMINI_API_KEY または OPENAI_API_KEY を設定すると、本物のAIによる生成が可能です
-
----
-
-## 主要なポイント
-1. 効率的なスライド作成
-2. インタラクティブな編集
-3. 多彩なエクスポート形式
-
----
-
-## まとめ
-- Marp Editable UIで快適なプレゼン作成を
-- ご清聴ありがとうございました
-`;
+    const data = {
+      config: {
+        theme: 'default',
+        paginate: true,
+        footer: 'Marp Editable UI'
+      },
+      slides: [
+        {
+          title: prompt,
+          content: '## プレゼンテーションの概要\n- AIによって生成されたサンプルスライドです\n- APIキーを設定すると、本物のAIによる生成が可能です',
+          style: { class: 'lead' }
+        },
+        {
+          title: '主要なポイント',
+          content: '1. 効率的なスライド作成\n2. インタラクティブな編集\n3. 多彩なエクスポート形式',
+          style: { backgroundColor: '#f0f0f0' }
+        },
+        {
+          title: 'まとめ',
+          content: '- Marp Editable UIで快適なプレゼン作成を\n- ご清聴ありがとうございました',
+          style: { class: 'invert' }
+        }
+      ]
+    };
+    
+    return this.renderStructuredToMarkdown(data);
   }
 }

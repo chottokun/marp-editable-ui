@@ -19,7 +19,8 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
     if (!prompt) return;
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3001/api/llm/generate', {
+      const apiUrl = `http://${window.location.hostname}:3001`;
+      const response = await fetch(`${apiUrl}/api/llm/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
@@ -34,9 +35,9 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
       if (data.markdown) {
         setResult(data.markdown);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('AI generation error:', error);
-      alert(`AIによる生成に失敗しました: ${error.message}`);
+      alert(`AIによる生成に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -45,7 +46,8 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
   const handleOptimize = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3001/api/llm/optimize', {
+      const apiUrl = `http://${window.location.hostname}:3001`;
+      const response = await fetch(`${apiUrl}/api/llm/optimize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ markdown: currentMarkdown }),
@@ -60,9 +62,9 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
       if (data.markdown) {
         setResult(data.markdown);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('AI optimization error:', error);
-      alert(`AIによる最適化に失敗しました: ${error.message}`);
+      alert(`AIによる最適化に失敗しました: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }

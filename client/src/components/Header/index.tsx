@@ -25,7 +25,8 @@ const Header: FC<HeaderProps> = ({
   const handleExport = async (format: ExportFormat) => {
     try {
       setIsExporting(true);
-      const response = await fetch('http://localhost:3001/api/export', {
+      const apiUrl = `http://${window.location.hostname}:3001`;
+      const response = await fetch(`${apiUrl}/api/export`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

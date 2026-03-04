@@ -1,4 +1,5 @@
 import { Marp } from '@marp-team/marp-core';
+import { marpCli } from '@marp-team/marp-cli';
 import { createMarpitInstance } from '../config/app.js';
 import { createTempFile, checkFileExists } from '../utils/temp.js';
 import { promises as fs } from 'fs';

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
+import { useMediaQuery } from '@mantine/hooks';
 import Header from './components/Header';
 import Editor from './components/Editor';
 import Preview from './components/Preview';
@@ -7,7 +8,7 @@ import AiAssistant from './components/AiAssistant';
 import './styles/global.css';
 import './styles/theme.css';
 
-const socket = io(`http://${window.location.hostname}:3001`);
+const socket = io();
 
 const initialContent = `---
 marp: true
@@ -56,19 +57,22 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState<'dark' | 'warm'>('warm');
   const [isAiOpen, setIsAiOpen] = useState(false);
+  const [editorWidth, setEditorWidth] = useState(50); // percentage
+  const [isResizing, setIsResizing] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // マークダウンをレンダリング
   const renderMarkdown = async (markdown: string) => {
     try {
-      const apiUrl = `http://${window.location.hostname}:3001`;
-      const response = await fetch(`${apiUrl}/api/render`, {
+      const response = await fetch('/api/render', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ markdown }),
       });
-      
+
       if (!response.ok) {
         throw new Error('レンダリングに失敗しました');
       }
@@ -99,6 +103,26 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  const startResizing = useCallback(() => {
+    setIsResizing(true);
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  const resize = useCallback((e: MouseEvent) => {
+    if (isResizing && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const relativeX = e.clientX - containerRect.left;
+      const newWidth = (relativeX / containerRect.width) * 100;
+
+      if (newWidth > 15 && newWidth < 85) {
+        setEditorWidth(newWidth);
+      }
+    }
+  }, [isResizing]);
+
   // WebSocket接続の設定
   useEffect(() => {
     socket.on('connect', () => {
@@ -116,12 +140,17 @@ function App() {
     // 初期レンダリング
     renderMarkdown(initialContent);
 
+    window.addEventListener('mousemove', resize);
+    window.addEventListener('mouseup', stopResizing);
+
     return () => {
       socket.off('connect');
       socket.off('content-update');
       socket.off('render-error');
+      window.removeEventListener('mousemove', resize);
+      window.removeEventListener('mouseup', stopResizing);
     };
-  }, []);
+  }, [resize, stopResizing]);
 
   // テーマの切り替え
   const toggleTheme = () => {
@@ -136,7 +165,7 @@ function App() {
   };
 
   return (
-    <div className={`app theme-${theme}`}>
+    <div className={`app theme-${theme} ${isResizing ? 'is-resizing' : ''}`}>
       <Header
         theme={theme}
         content={content}
@@ -146,17 +175,24 @@ function App() {
         onAiAssistantOpen={() => setIsAiOpen(true)}
       />
 
-      <div className="container">
+      <div className="container" ref={containerRef}>
         <Editor
           content={content}
           theme={theme}
           onChange={handleChange}
+          style={!isMobile ? { width: `${editorWidth}%`, flex: 'none' } : {}}
         />
-        
+
+        <div
+          className={`resizer ${isResizing ? 'is-resizing' : ''}`}
+          onMouseDown={startResizing}
+        />
+
         <Preview
           html={preview.html}
           css={preview.css}
           error={error}
+          style={!isMobile ? { flex: 1 } : {}}
         />
       </div>
 

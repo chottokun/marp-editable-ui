@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, CSSProperties } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { markdown } from '@codemirror/lang-markdown';
 import './styles.css';
@@ -7,11 +7,12 @@ interface EditorProps {
   content: string;
   theme: 'dark' | 'warm';
   onChange: (value: string) => void;
+  style?: CSSProperties;
 }
 
-const Editor: FC<EditorProps> = ({ content, theme, onChange }) => {
+const Editor: FC<EditorProps> = ({ content, theme, onChange, style }) => {
   return (
-    <div className="editor">
+    <div className="editor" style={style}>
       <CodeMirror
         value={content}
         height="100%"

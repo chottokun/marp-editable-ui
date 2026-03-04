@@ -1,22 +1,21 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatOpenAI } from "@langchain/openai";
-import { PromptTemplate } from "@langchain/core/prompts";
 import { z } from "zod";
 
 /**
  * スライド1枚の構造定義
  */
 const SlideSchema = z.object({
-  title: z.string().describe("スライドのタイトル。必ず簡潔で分かりやすいものにすること。"),
-  content: z.string().describe("スライドの本文（マークダウン形式、箇条書き、強調などを活用）。"),
+  title: z.string(),
+  content: z.string(),
   style: z.object({
-    class: z.enum(["lead", "invert", "default"]).optional().describe("スライドのクラス。中央揃えは lead、色反転は invert。"),
-    backgroundColor: z.string().optional().describe("背景色 (例: #ffffff, #003366)。"),
-    color: z.string().optional().describe("文字色 (例: #000000, #ffffff)。"),
-    backgroundImage: z.string().optional().describe("背景画像URL。"),
-  }).optional().describe("スライドごとの個別スタイル設定。"),
-  header: z.string().optional().describe("このスライド専用のヘッダー。"),
-  footer: z.string().optional().describe("このスライド専用のフッター。"),
+    class: z.enum(["lead", "invert", "default"]).optional(),
+    backgroundColor: z.string().optional(),
+    color: z.string().optional(),
+    backgroundImage: z.string().optional(),
+  }).optional(),
+  header: z.string().optional(),
+  footer: z.string().optional(),
 });
 
 /**
@@ -24,12 +23,12 @@ const SlideSchema = z.object({
  */
 const PresentationSchema = z.object({
   config: z.object({
-    theme: z.enum(["default", "gaia", "uncover"]).describe("Marpの基本テーマ。"),
-    paginate: z.boolean().describe("ページ番号を表示するかどうか。"),
-    header: z.string().optional().describe("全スライド共通のヘッダー。"),
-    footer: z.string().optional().describe("全スライド共通のフッター。"),
-  }).describe("プレゼンテーションの全般設定。"),
-  slides: z.array(SlideSchema).min(3).max(15).describe("スライドのリスト。"),
+    theme: z.enum(["default", "gaia", "uncover"]),
+    paginate: z.boolean(),
+    header: z.string().optional(),
+    footer: z.string().optional(),
+  }),
+  slides: z.array(SlideSchema),
 });
 
 export class LlmService {
@@ -52,6 +51,15 @@ export class LlmService {
     let md = "---\nmarp: true\n";
     md += `theme: ${data.config.theme || 'default'}\n`;
     if (data.config.paginate) md += "paginate: true\n";
+    
+    // グローバルなスタイル設定をフロントマターに追加
+    // (最初のスライドのスタイルを全体のデフォルトとして採用するロジック)
+    const globalStyle = data.slides[0]?.style;
+    if (globalStyle) {
+      if (globalStyle.backgroundColor) md += `backgroundColor: "${globalStyle.backgroundColor}"\n`;
+      if (globalStyle.color) md += `color: "${globalStyle.color}"\n`;
+    }
+
     if (data.config.header) md += `header: "${normalize(data.config.header)}"\n`;
     if (data.config.footer) md += `footer: "${normalize(data.config.footer)}"\n`;
     md += "---\n\n";
@@ -60,23 +68,29 @@ export class LlmService {
       if (index > 0) md += "\n---\n\n";
       
       const directives = [];
-      if (slide.style) {
+      
+      // グローバル（1枚目のスタイル）と異なる場合のみ個別設定を出力
+      if (slide.style && index > 0) {
         if (slide.style.class && slide.style.class !== 'default') {
           directives.push(`_class: ${slide.style.class}`);
         }
-        if (slide.style.backgroundColor) {
-          directives.push(`backgroundColor: "${slide.style.backgroundColor}"`);
+        if (slide.style.backgroundColor && slide.style.backgroundColor !== globalStyle?.backgroundColor) {
+          directives.push(`_backgroundColor: "${slide.style.backgroundColor}"`);
         }
-        if (slide.style.color) {
-          directives.push(`color: "${slide.style.color}"`);
+        if (slide.style.color && slide.style.color !== globalStyle?.color) {
+          directives.push(`_color: "${slide.style.color}"`);
         }
-        if (slide.style.backgroundImage) {
-          directives.push(`backgroundImage: url("${slide.style.backgroundImage}")`);
-        }
+      } else if (slide.style?.class && slide.style.class !== 'default') {
+        // 1枚目でも class (lead 等) は個別に出力
+        directives.push(`_class: ${slide.style.class}`);
       }
       
-      if (slide.header) directives.push(`header: "${normalize(slide.header)}"`);
-      if (slide.footer) directives.push(`footer: "${normalize(slide.footer)}"`);
+      if (slide.header && normalize(slide.header) !== normalize(data.config.header)) {
+        directives.push(`_header: "${normalize(slide.header)}"`);
+      }
+      if (slide.footer && normalize(slide.footer) !== normalize(data.config.footer)) {
+        directives.push(`_footer: "${normalize(slide.footer)}"`);
+      }
 
       if (directives.length > 0) {
         md += directives.join('\n') + '\n\n';
@@ -92,15 +106,14 @@ export class LlmService {
   /**
    * 使用するチャットモデルを取得する
    */
-  static getChatModel(temperature = 0.7) {
-    const provider = process.env.LLM_PROVIDER || 'google'; // デフォルトは google
+  static getChatModel(temperature = 0) { // デフォルトを 0 に変更
+    const provider = process.env.LLM_PROVIDER || 'google';
     
     if (provider === 'openai' && process.env.OPENAI_API_KEY) {
       console.log('🤖 OpenAI を使用します');
       const modelName = process.env.OPENAI_MODEL || "gpt-4o";
       return new ChatOpenAI({
         model: modelName,
-        modelName: modelName,
         apiKey: process.env.OPENAI_API_KEY,
         temperature,
       });
@@ -109,11 +122,17 @@ export class LlmService {
     if (process.env.GEMINI_API_KEY) {
       console.log('🤖 Google Gemini を使用します');
       const apiKey = process.env.GEMINI_API_KEY.trim();
-      const modelName = String(process.env.GEMINI_MODEL || "gemini-1.5-flash");
+      let modelName = String(process.env.GEMINI_MODEL || "gemini-2.0-flash");
+      
+      // モデル名の正規化（プレフィックス models/ がなければ付与する）
+      if (!modelName.startsWith("models/")) {
+        modelName = `models/${modelName}`;
+      }
+      
+      console.warn(`📡 使用モデル: ${modelName}`);
       
       return new ChatGoogleGenerativeAI({
         model: modelName,
-        modelName: modelName,
         apiKey: apiKey,
         temperature,
       });
@@ -122,84 +141,51 @@ export class LlmService {
     return null;
   }
 
-  static async generate(prompt) {
-    console.log('🤖 AIスライド生成（構造化出力）を開始します...', { prompt });
+  static async generate(prompt, slideCount = 5) {
+    console.log('🤖 AIスライド生成（構造化）を開始します...', { prompt, slideCount });
 
     try {
-      const model = this.getChatModel(0.7);
+      const model = this.getChatModel(0); // temperature=0
+      if (!model) return this.getMockData(prompt);
 
-      if (!model) {
-        console.log('⚠️ APIキーが設定されていないため、モックデータを返します');
-        return this.getMockData(prompt);
-      }
-
-      console.log('📡 LangChain チェーン（構造化）を実行中...');
-      
+      // 最新の Structured Output 設定
       const structuredModel = model.withStructuredOutput(PresentationSchema);
-
-      const template = PromptTemplate.fromTemplate(`
-        あなたはプロのプレゼンテーションデザイナーです。
-        以下のテーマに基づいて、視覚的に美しく、構造化されたプレゼンテーションデータを作成してください。
-
-        テーマ: {prompt}
-
-        設計指針:
-        - テーマ（theme）は内容に合わせて 'default', 'gaia', 'uncover' から最適なものを選択すること。
-        - 各スライドには適切なスタイル（class, backgroundColor等）を設定し、視覚的なバリエーションを持たせること。
-        - 6枚から10枚程度の構成にすること。
-        - 日本語で作成すること。
-      `);
-
-      const chain = template.pipe(structuredModel);
-      const result = await chain.invoke({ prompt });
       
-      console.log('✅ AI生成（構造化）が完了しました。スライド数:', result.slides.length);
-
+      // プロンプトに枚数を明示
+      const result = await structuredModel.invoke(`プレゼンのテーマ: ${prompt}。スライド枚数は ${slideCount} 枚にしてください。簡潔に要点をまとめてください。`);
+      
+      console.log('✅ AI生成（構造化）が完了しました。');
       return this.renderStructuredToMarkdown(result);
     } catch (error) {
       console.error('❌ AI生成エラー詳細:', error);
-      if (error.stack) console.error(error.stack);
       throw new Error(`AIによるスライド生成に失敗しました: ${error.message}`);
     }
   }
 
-  static async optimize(markdown) {
-    console.log('🤖 AIスライド最適化（構造化出力）を開始します...');
+  static async optimize(markdown, instruction = "", slideCount = null) {
+    console.log('🤖 AIスライド最適化（構造化）を開始します...', { instruction, slideCount });
 
     try {
-      const model = this.getChatModel(0.5);
+      const model = this.getChatModel(0); // temperature=0
+      if (!model) return markdown + "\n\n<!-- AIにより最適化されました（Mock） -->";
 
-      if (!model) {
-        console.log('⚠️ APIキーが設定されていないため、モックデータを返します');
-        return markdown + "\n\n<!-- AIにより最適化されました（Mock） -->";
-      }
-
-      console.log('📡 LangChain チェーン（最適化・構造化）を実行中...');
-      
+      // 最新の Structured Output 設定
       const structuredModel = model.withStructuredOutput(PresentationSchema);
 
-      const template = PromptTemplate.fromTemplate(`
-        以下のMarp形式のマークダウンをプロのプレゼンテーションデザイナーとして改善し、構造化されたデータとして返してください。
-        内容をより簡潔にし、視覚的に訴求力のあるデザイン（Marpの機能を駆使）に修正してください。
-
-        対象マークダウン:
-        {markdown}
-
-        改善要件:
-        - 視覚的なバリエーションを増やすこと（styleの適切な設定）
-        - 情報を構造化し、プレゼンテーションとしてインパクトのある構成にすること
-        - 日本語で出力すること
+      // プロンプトを構造化出力に特化させる
+      const countInstruction = slideCount ? `、スライド枚数は ${slideCount} 枚` : "";
+      const result = await structuredModel.invoke(`
+        以下のMarp Markdownを、指示に従って最適化・変形した【構造化データ】として返してください。
+        指示: ${instruction || "プロの視点で全体を改善し、簡潔にまとめてください。"}${countInstruction}
+        対象Markdown:
+        ${markdown}
       `);
-
-      const chain = template.pipe(structuredModel);
-      const result = await chain.invoke({ markdown });
       
-      console.log('✅ AI最適化（構造化）が完了しました。スライド数:', result.slides.length);
-
+      console.log('✅ AI最適化（構造化）が完了しました。');
+      // AIから得られたJSONオブジェクトをMarkdownに変換して返す
       return this.renderStructuredToMarkdown(result);
     } catch (error) {
       console.error('❌ AI最適化エラー詳細:', error);
-      if (error.stack) console.error(error.stack);
       throw new Error(`AIによるスライド最適化に失敗しました: ${error.message}`);
     }
   }

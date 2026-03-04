@@ -3,7 +3,7 @@ import { Marp } from '@marp-team/marp-core';
 // Marpit (Marp Core) インスタンスの設定
 export const createMarpitInstance = () => {
   const marp = new Marp({
-    inlineSVG: false,
+    inlineSVG: true,
     html: true,
     breaks: true,
     linkify: true,
@@ -102,7 +102,8 @@ export const config = {
   port: process.env.PORT || 3001,
   cors: {
     origin: "http://localhost:5173",
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: true
   },
   contentTypes: {
     'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',

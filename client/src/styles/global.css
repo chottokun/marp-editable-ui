@@ -24,6 +24,11 @@ html, body {
   transition: background 0.3s ease;
 }
 
+.app.is-resizing {
+  user-select: none;
+  cursor: col-resize;
+}
+
 .container {
   flex: 1;
   display: flex;
@@ -31,6 +36,35 @@ html, body {
   overflow: hidden;
   padding: 1rem;
   gap: 1rem;
+}
+
+.resizer {
+  width: 12px;
+  cursor: col-resize;
+  /* margin: 0 4px; を削除 */
+  border-radius: 6px;
+  transition: background 0.2s, width 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+}
+.resizer::after {
+  content: '';
+  width: 2px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 1px;
+}
+
+.resizer:hover, .resizer.is-resizing {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.resizer:hover::after, .resizer.is-resizing::after {
+  background: rgba(255, 255, 255, 0.5);
+  height: 40px;
 }
 
 /* カスタムスクロールバー */
@@ -60,6 +94,10 @@ html, body {
     flex-direction: column;
     padding: 0.5rem;
     gap: 0.5rem;
+  }
+  
+  .resizer {
+    display: none;
   }
 }
 

@@ -10,6 +10,8 @@ interface AiAssistantProps {
 
 const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, currentMarkdown }) => {
   const [prompt, setPrompt] = useState('');
+  const [instruction, setInstruction] = useState('');
+  const [slideCount, setSlideCount] = useState(5); // デフォルト5枚
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
@@ -19,11 +21,13 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
     if (!prompt) return;
     try {
       setLoading(true);
-      const apiUrl = `http://${window.location.hostname}:3001`;
-      const response = await fetch(`${apiUrl}/api/llm/generate`, {
+      const response = await fetch('/api/llm/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ 
+          prompt,
+          slideCount // 枚数を送信
+        }),
       });
       
       const data = await response.json();
@@ -46,11 +50,14 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
   const handleOptimize = async () => {
     try {
       setLoading(true);
-      const apiUrl = `http://${window.location.hostname}:3001`;
-      const response = await fetch(`${apiUrl}/api/llm/optimize`, {
+      const response = await fetch('/api/llm/optimize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ markdown: currentMarkdown }),
+        body: JSON.stringify({ 
+          markdown: currentMarkdown,
+          instruction: instruction,
+          slideCount // 最適化後の枚数も指定可能に
+        }),
       });
       
       const data = await response.json();
@@ -87,13 +94,29 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
         </div>
 
         <div className="ai-assistant-content">
+          <div className="ai-settings-row">
+            <label>スライド枚数:</label>
+            <input 
+              type="number" 
+              min="1" 
+              max="20" 
+              value={slideCount}
+              onChange={(e) => setSlideCount(parseInt(e.target.value) || 5)}
+              className="slide-count-input"
+            />
+            <span className="unit">枚</span>
+          </div>
+
+          <div className="ai-assistant-divider-line" />
+
           <div className="ai-assistant-section">
-            <h3>スライドを新規生成</h3>
+            <h3>✨ スライドを新規生成</h3>
             <textarea
               placeholder="プレゼンのテーマを入力してください (例: 'TypeScriptの基礎')"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               disabled={loading}
+              className="ai-textarea"
             />
             <button
               className="generate-button"
@@ -107,7 +130,14 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
           <div className="ai-assistant-divider">or</div>
 
           <div className="ai-assistant-section">
-            <h3>現在のスライドを最適化</h3>
+            <h3>🎨 現在のスライドを最適化</h3>
+            <textarea
+              placeholder="どのように改善したいですか？ (例: 'もっとモダンな配色にして')"
+              value={instruction}
+              onChange={(e) => setInstruction(e.target.value)}
+              disabled={loading}
+              className="ai-textarea"
+            />
             <button
               className="optimize-button"
               onClick={handleOptimize}
@@ -119,8 +149,8 @@ const AiAssistant: FC<AiAssistantProps> = ({ isOpen, onClose, onApplyMarkdown, c
 
           {result && (
             <div className="ai-assistant-result">
-              <h3>生成結果のプレビュー</h3>
-              <pre>{result}</pre>
+              <h3>✨ 生成結果のプレビュー</h3>
+              <pre className="result-preview">{result}</pre>
               <button className="apply-button" onClick={handleApply}>
                 エディタに適用する
               </button>

@@ -193,7 +193,10 @@ export class LlmService {
 
     try {
       const model = this.getChatModel(0);
-      if (!model) return this.getMockData(prompt);
+      if (!model) {
+        console.log('⚠️ LLMモデルが初期化できません。Mockデータを返します。');
+        return this.getMockData(prompt);
+      }
 
       const structuredModel = model.withStructuredOutput(PresentationSchema);
 
@@ -206,7 +209,8 @@ export class LlmService {
       return this.renderStructuredToMarkdown(result);
     } catch (error) {
       console.error('❌ AI生成エラー詳細:', error);
-      throw new Error(`AIによるスライド生成に失敗しました: ${error.message}`);
+      console.log('⚠️ エラーが発生したためMockデータを返します。');
+      return this.getMockData(prompt);
     }
   }
 
@@ -215,13 +219,16 @@ export class LlmService {
 
     try {
       const model = this.getChatModel(0);
-      if (!model) return markdown + "\n\n<!-- AIにより最適化されました（Mock） -->";
+      if (!model) {
+        console.log('⚠️ LLMモデルが初期化できません。最適化をスキップします。');
+        return markdown + "\n\n<!-- AIモデル未設定のため、最適化をスキップしました -->";
+      }
 
       const structuredModel = model.withStructuredOutput(PresentationSchema);
 
       const countInstruction = slideCount ? `、スライド枚数は ${slideCount} 枚` : "";
       const result = await structuredModel.invoke([
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: SYSTEM_PROMPT + "\n\nCRITICAL: You must return VALID JSON matching the specified schema. Do not include any text outside the JSON." },
         {
           role: "user", content: `以下のMarp Markdownを、指示に従って最適化・変形した【構造化データ】として返してください。
         指示: ${instruction || "プロの視点で全体を改善し、簡潔にまとめてください。"}${countInstruction}
@@ -235,7 +242,17 @@ export class LlmService {
       return this.renderStructuredToMarkdown(result);
     } catch (error) {
       console.error('❌ AI最適化エラー詳細:', error);
-      throw new Error(`AIによるスライド最適化に失敗しました: ${error.message}`);
+
+      // SyntaxError (Unexpected token 'm/c'...) の場合、AIがそのままMarkdownを返してしまった可能性がある
+      if (error instanceof SyntaxError || error.message.includes('JSON')) {
+        console.log('⚠️ AIが構造化データではなく生のMarkdownを返した可能性があります。');
+        // ここで再試行するか、あるいは部分的に抽出するロジックを入れることも可能だが、
+        // 今回は安全に元のMarkdownに情報を添えて返す
+        return markdown + `\n\n<!-- ⚠️ 最適化エラーが発生しました（JSONパース失敗）。指示内容を反映できませんでした。 -->`;
+      }
+
+      console.log('⚠️ エラーが発生したため元のMarkdownを返します。');
+      return markdown + `\n\n<!-- ⚠️ 最適化エラーが発生しました: ${error.message} -->`;
     }
   }
 

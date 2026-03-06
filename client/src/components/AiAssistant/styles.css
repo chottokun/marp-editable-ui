@@ -13,15 +13,18 @@
 }
 
 .ai-assistant-modal {
-  background: var(--bg-card);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
   width: 90%;
-  max-width: 650px;
+  max-width: 700px;
   max-height: 85vh;
-  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
 }
 
@@ -197,8 +200,13 @@
   background: var(--border-color);
 }
 
-.ai-assistant-divider::before { left: 0; }
-.ai-assistant-divider::after { right: 0; }
+.ai-assistant-divider::before {
+  left: 0;
+}
+
+.ai-assistant-divider::after {
+  right: 0;
+}
 
 .generate-button,
 .optimize-button,

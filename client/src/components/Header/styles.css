@@ -1,14 +1,13 @@
 .header {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 1rem 1.2rem;
+  height: 60px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  animation: slideIn 0.5s ease-out;
-  z-index: 1000;
+  background: white;
+  border-bottom: 1px solid #eaedf0;
+  z-index: 100;
+  /* Ensure header is above editor */
 }
 
 .header h1 {
@@ -126,6 +125,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -136,12 +136,12 @@
   .toolbar {
     gap: 0.4rem;
   }
-  
+
   .toolbar button {
     padding: 0.4rem 0.8rem;
     font-size: 0.8rem;
   }
-  
+
   .dropdown-content {
     right: -50%;
     min-width: 160px;

@@ -23,20 +23,28 @@
 
 - 📝 リアルタイムマークダウン編集
 - 🔄 インスタントプレビュー
-- 📊 複数形式でのエクスポート（PDF, PPTX, PNG）
-- 🎨 カスタマイズ可能なテーマ
+- 📊 高度なコンテンツ表示 (テーブル, Mermaid図解, KaTeX数式) 
+- 📤 複数形式でのエクスポート（PDF, PPTX, PNG, HTML）
+- 🤖 AI Assistant によるスライド自動生成・最適化
+- 🎨 カスタマイズ可能なテーマ (Default, Gaia, Uncover)
 - 🌙 ダーク/ライトモード対応
-- 📱 レスポンシブデザイン
-- 🔌 WebSocket によるリアルタイム同期
-- 🐳 Docker による簡単デプロイ
+- 🐳 Docker によるかんたん環境構築
 
 ### ✨ このフォークで追加された機能
 
-- 🤖 **AI Assistant** - Google Gemini / OpenAI による自動スライド生成・最適化
-  - テーマを入力するだけでMarpスライドを自動生成
-  - 既存スライドを指示に従ってブラッシュアップ
-  - スライド枚数の指定可能
-- 🔧 **CORS / WebSocket修正** - Viteプロキシ経由でSocket.IOを通信させることでCORSエラーを解消
+- 🤖 **AI Assistant の大幅強化** - Google Gemini / OpenAI による高度なスライド支援
+  - **構造化データ生成**: プロンプトから表や図、数式を含む整合性の取れたスライドを生成
+  - **編集プリセット**: 「ダークモード化」「Gaiaテーマ適用」「表/図/数式の挿入」などのクイック操作に対応
+  - **堅牢なフォールバック**: AIのレスポンス形式が崩れても、最適な形でエディタに反映
+- 🧜 **Mermaid.js の統合** - `mermaid` コードブロックによるフローチャート、シーケンス図等の動的描画
+- 📐 **KaTeX 数式サポート** - 美しい数式（インライン `$..$` / ブロック `$$..$$`）のレンダリング
+- 📋 **最適化されたテーブル表示** - スライドで見やすいストライプスタイルのテーブル
+- 🐳 **Docker環境の完全サポート** - LibreOffice, Chromium 内蔵により、PPTX/PDF出力をコンテナ内で完結
+
+## 📸 機能デモンストレーション
+
+![Marp Features Demo](/home/nobuhiko/.gemini/antigravity/brain/fcb43f53-e082-4ac6-bf57-0b2756ebb52d/final_verification_marp_features_1772795518133.png)
+*AI Assistantによる生成、Gaiaテーマ、数式、Mermaid図解の同時利用例*
 
 ## 🛠️ 技術スタック
 

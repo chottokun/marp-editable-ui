@@ -1,4 +1,4 @@
-# Marp Editable UI
+# Marp Editable UI Plus (Fork)
 
 <div align="center">
   <img src="assets/header.png" alt="Marp Editable Slides">

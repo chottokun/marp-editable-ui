@@ -81,16 +81,43 @@ export const createMarpitInstance = () => {
     border-collapse: collapse;
     width: 100%;
     margin: 1em 0;
+    font-size: 0.8em;
   }
 
   th, td {
     border: 1px solid #ddd;
-    padding: 0.5em;
+    padding: 0.6em;
     text-align: left;
   }
 
   th {
-    background: #f0f0f0;
+    background: #f8f9fa;
+    font-weight: bold;
+  }
+
+  tr:nth-child(even) {
+    background: #fafafa;
+  }
+
+  /* Mermaidコンテナの調整 */
+  .language-mermaid {
+    background: transparent !important;
+    padding: 0 !important;
+    display: flex;
+    justify-content: center;
+    overflow: visible !important;
+  }
+  
+  .language-mermaid svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* 数式の余白調整 */
+  .katex-display {
+    margin: 1em 0;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
   `);
 

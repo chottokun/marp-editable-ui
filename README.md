@@ -43,7 +43,7 @@
 
 ## 📸 機能デモンストレーション
 
-![Marp Features Demo](/home/nobuhiko/.gemini/antigravity/brain/fcb43f53-e082-4ac6-bf57-0b2756ebb52d/final_verification_marp_features_1772795518133.png)
+![Marp Features Demo](assets/demo_features.png)
 *AI Assistantによる生成、Gaiaテーマ、数式、Mermaid図解の同時利用例*
 
 ## 🛠️ 技術スタック
